@@ -1,5 +1,6 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
+import { AppProvider } from "./contexts/AppContext";
 import styled from "styled-components";
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
@@ -37,37 +38,37 @@ const MainContent = styled.main`
 
 function App() {
   return (
-    <>
+    <AppProvider>
       <GlobalStyles />
       <AppContainer>
         <Header />
         <MainContent>
           <Routes>
             <Route path="/" element={<HomePage />} />
-            <Route path="/create" element={<CreatePage />} />
             <Route path="/marketplace" element={<MarketplacePage />} />
-            <Route path="/nft/:id" element={<NFTDetailsPage />} />
+            <Route path="/create" element={<CreatePage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/nft/:id" element={<NFTDetailsPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/resell/:id" element={<ResellPage />} />
             <Route path="/about" element={<AboutPage />} />
-            <Route path="/faq" element={<FAQPage />} />
-            <Route path="/terms" element={<TermsPage />} />
             <Route path="/contact" element={<ContactPage />} />
+            <Route path="/docs" element={<DocsPage />} />
+            <Route path="/faq" element={<FAQPage />} />
             <Route path="/help" element={<HelpPage />} />
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/resell/:id" element={<ResellPage />} />
             <Route path="/success" element={<SuccessPage />} />
-            <Route path="/docs" element={<DocsPage />} />
-            <Route path="/error" element={<ErrorPage />} />
+            <Route path="/terms" element={<TermsPage />} />
             <Route path="/loading" element={<LoadingPage />} />
+            <Route path="*" element={<ErrorPage />} />
           </Routes>
         </MainContent>
         <Footer />
       </AppContainer>
-    </>
+    </AppProvider>
   );
 }
 
