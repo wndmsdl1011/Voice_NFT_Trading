@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components";
-import { Instagram, X, Facebook, Sparkles } from "lucide-react";
+import { Instagram, Twitter, Facebook, Sparkles } from "lucide-react";
 import Button from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 
@@ -383,7 +383,7 @@ function LoginPage() {
                 onClick={() => handleSocialLogin("twitter")}
               >
                 <SocialIcon>
-                  <X />X (Twitter)로 시작하기
+                  <Twitter />X (Twitter)로 시작하기
                 </SocialIcon>
               </SocialButton>
 

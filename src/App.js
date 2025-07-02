@@ -24,6 +24,7 @@ import SuccessPage from "./pages/SuccessPage";
 import DocsPage from "./pages/DocsPage";
 import ErrorPage from "./pages/ErrorPage";
 import LoadingPage from "./pages/LoadingPage";
+import TTSPage from "./pages/TTSPage";
 import GlobalStyles from "./styles/GlobalStyles";
 
 const AppContainer = styled.div`
@@ -47,6 +48,7 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/marketplace" element={<MarketplacePage />} />
             <Route path="/create" element={<CreatePage />} />
+            <Route path="/tts" element={<TTSPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/nft/:id" element={<NFTDetailsPage />} />
             <Route path="/login" element={<LoginPage />} />

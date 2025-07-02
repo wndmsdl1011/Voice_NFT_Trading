@@ -218,6 +218,7 @@ const MobileNavLink = styled(Link)`
 const navigation = [
   { name: "마켓플레이스", href: "/marketplace" },
   { name: "NFT 생성", href: "/create" },
+  { name: "TTS 스튜디오", href: "/tts" },
 ];
 
 const Header = () => {
