@@ -41,7 +41,6 @@
 🧠 AI 음성 합성
 
 <div>
-  <img src="https://github.com/SparkAudio/Spark-TTS/raw/main/src/logo/SparkTTS.jpg" width="24" />
   <img src="https://img.shields.io/badge/SparkTTS-AI-blueviolet?style=for-the-badge">
 </div>
 
