@@ -21,7 +21,7 @@
 
 🚀 Frontend
 
-<img src="https://img.shields.io/badge/React-E34F26?style=for-the-badge&logo=html5&logoColor=white">
+<img src="https://img.shields.io/badge/React-E34F26?style=for-the-badge&logo=React&logoColor=white">
 
 
 🛠 Backend
