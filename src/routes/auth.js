@@ -12,7 +12,7 @@ const generateOnboardingToken = (profile) => jwt.sign({ profile }, process.env.J
 // --- Instagram 인증 흐름 ---
 router.get('/instagram', passport.authenticate('instagram'));
 router.get('/instagram/callback', (req, res, next) => {
-  passport.authenticate('instagram', { session: false }, (err, user, info) => {
+  passport.authenticate('instagram', (err, user, info) => {
     if (err) return next(err);
     if (user) {
       const token = generateLoginToken(user.id);

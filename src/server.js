@@ -1,35 +1,41 @@
-require('dotenv').config(); // .env 파일 로드. 반드시 최상단에 위치!
+require('dotenv').config();
 
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const passport = require('passport');
+const session = require('express-session');
 const authRoutes = require('./routes/auth');
 
-// Passport 설정 불러오기
-require('./config/passport')(passport);
 
 const app = express();
 
-// Middleware
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 
-// CORS 설정
-app.use(cors({
-  origin: 'http://localhost:3000', // 프론트엔드 URL
-  credentials: true,
+// 세션 미들웨어
+app.use(session({
+  secret: process.env.JWT_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: false }
 }));
 
-// Passport 미들웨어 초기화
+// Passport 미들웨어
 app.use(passport.initialize());
+app.use(passport.session());
 
-// MongoDB 연결
+// Passport 설정 불러오기 (passport 초기화 이후에 위치)
+require('./config/passport')(passport);
+
+// DB 연결
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB connected successfully'))
   .catch(err => console.error('MongoDB connection error:', err));
 
-// Routes
+// 라우트 설정
 app.use('/api/auth', authRoutes);
 
 // 서버 시작
