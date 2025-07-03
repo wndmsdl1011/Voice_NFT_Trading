@@ -25,19 +25,22 @@
 
 🛠 Backend
 
-<img src="https://img.shields.io/badge/node.js-8FC708?style=for-the-badge&logo=node.js&logoColor=white">
-<img src="https://img.shields.io/badge/Solidity-363636?style=for-the-badge&logo=solidity&logoColor=white">
-<img src="https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white">
+<div>
+  <img src="https://img.shields.io/badge/node.js-8FC708?style=for-the-badge&logo=node.js&logoColor=white">
+  <img src="https://img.shields.io/badge/Solidity-363636?style=for-the-badge&logo=solidity&logoColor=white">
+  <img src="https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white">  
+</div>
 
 🔐 인증
-
-<img src="https://img.shields.io/badge/OAuth2.0-3c3c3c?style=for-the-badge&logo=oauth&logoColor=white">
-<img src="https://img.shields.io/badge/Instagram-E4405F?style=for-the-badge&logo=instagram&logoColor=white">
-<img src="https://img.shields.io/badge/X-000000?style=for-the-badge&logo=x&logoColor=white">
+<div>
+  <img src="https://img.shields.io/badge/OAuth2.0-3c3c3c?style=for-the-badge&logo=oauth&logoColor=white">
+  <img src="https://img.shields.io/badge/Instagram-E4405F?style=for-the-badge&logo=instagram&logoColor=white">
+  <img src="https://img.shields.io/badge/X-000000?style=for-the-badge&logo=x&logoColor=white">  
+</div>
 
 🧠 AI 음성 합성
 
-<img src="https://your-image-url.com/sparktss-icon.png" width="24" />
+<img src="https://github.com/SparkAudio/Spark-TTS/raw/main/src/logo/SparkTTS.jpg" width="24" />
 <img src="https://img.shields.io/badge/SparkTTS-AI-blueviolet?style=for-the-badge">
 
 🗂 파일 저장
