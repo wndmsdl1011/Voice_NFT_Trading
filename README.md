@@ -17,16 +17,26 @@
 
 ---
 
-## 🧱 기술 스택
+🧱 기술 스택
+🚀 Frontend
 
-| 구분 | 사용 기술 |
-|------|-----------|
-| Frontend | React, TailwindCSS, GammaAI 문서 구조 |
-| Backend | Node.js (Express), Flask (TTS), MongoDB |
-| Blockchain | Solidity (DApp) |
-| 인증 | OAuth 2.0 (Instagram, Twitter/X) |
-| AI 음성합성 | SparkTTS, ElevenLabs API 연동 |
-| 파일 저장 | IPFS (Pinata / web3.storage 연동) |
+
+
+🛠 Backend
+
+
+
+
+⛓ Blockchain
+
+🔐 인증
+
+
+
+🧠 AI 음성 합성
+
+🗂 파일 저장
+
 
 ---
 
