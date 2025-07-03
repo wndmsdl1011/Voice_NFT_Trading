@@ -52,6 +52,13 @@
   <img src="https://img.shields.io/badge/IPFS-65C2CB?style=for-the-badge&logo=ipfs&logoColor=white">
 </div>
 
+<h3>🤝 협업 툴</h3>
+
+<div>
+  <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white">
+  <img src="https://img.shields.io/badge/Notion-000000?style=for-the-badge&logo=notion&logoColor=white">
+</div>
+
 ---
 
 ## 🚀 프로젝트 구조
