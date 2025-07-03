@@ -35,7 +35,7 @@
 <div>
   <img src="https://img.shields.io/badge/OAuth2.0-3c3c3c?style=for-the-badge&logo=oauth&logoColor=white">
   <img src="https://img.shields.io/badge/Instagram-E4405F?style=for-the-badge&logo=instagram&logoColor=white">
-  <img src="https://img.shields.io/badge/TwitterX-000000?style=for-the-badge&logo=x&logoColor=white">  
+  <img src="https://img.shields.io/badge/Twitter-000000?style=for-the-badge&logo=x&logoColor=white">  
 </div>
 
 🧠 AI 음성 합성
