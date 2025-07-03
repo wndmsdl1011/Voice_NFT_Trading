@@ -28,7 +28,7 @@
 <div>
   <img src="https://img.shields.io/badge/node.js-8FC708?style=for-the-badge&logo=node.js&logoColor=white">
   <img src="https://img.shields.io/badge/Solidity-363636?style=for-the-badge&logo=solidity&logoColor=white">
-  <img src="https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white">  
+  <img src="https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white">
 </div>
 
 🔐 인증
@@ -36,6 +36,7 @@
   <img src="https://img.shields.io/badge/OAuth2.0-3c3c3c?style=for-the-badge&logo=oauth&logoColor=white">
   <img src="https://img.shields.io/badge/Instagram-E4405F?style=for-the-badge&logo=instagram&logoColor=white">
   <img src="https://img.shields.io/badge/Twitter-000000?style=for-the-badge&logo=x&logoColor=white">  
+  <img src="https://img.shields.io/badge/Facebook-1877F2?style=for-the-badge&logo=facebook&logoColor=white">
 </div>
 
 🧠 AI 음성 합성
@@ -46,6 +47,10 @@
 
 🗂 파일 저장
 
+<div>
+  <img src="https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white">  
+  <img src="https://img.shields.io/badge/IPFS-65C2CB?style=for-the-badge&logo=ipfs&logoColor=white">
+</div>
 
 ---
 
