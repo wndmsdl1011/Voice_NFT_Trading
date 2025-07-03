@@ -5,7 +5,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "../components/ui/Card";
+} from "../../components/ui/Card";
 
 const PageContainer = styled.div`
   min-height: 100vh;
@@ -34,48 +34,37 @@ const Title = styled.h1`
   -webkit-text-fill-color: transparent;
 `;
 
-const PrivacyPage = () => {
+const TermsPage = () => {
   return (
     <PageContainer>
       <Container>
-        <Title>개인정보처리방침</Title>
+        <Title>이용약관</Title>
         <Card>
           <CardHeader>
-            <CardTitle>개인정보 보호 정책</CardTitle>
+            <CardTitle>서비스 이용약관</CardTitle>
           </CardHeader>
           <CardContent>
             <div style={{ color: "var(--gray-600)", lineHeight: "1.6" }}>
               <h3 style={{ marginBottom: "1rem", color: "var(--gray-800)" }}>
-                1. 수집하는 개인정보
+                1. 서비스 개요
               </h3>
               <p style={{ marginBottom: "1rem" }}>
-                음성NFT 플랫폼은 서비스 제공을 위해 최소한의 개인정보만을
-                수집합니다. - 지갑 주소, 거래 내역, 업로드한 음성 파일
+                음성NFT 플랫폼은 음성 기반 NFT의 생성, 거래, 수집을 위한
+                서비스를 제공합니다.
               </p>
 
               <h3 style={{ marginBottom: "1rem", color: "var(--gray-800)" }}>
-                2. 개인정보 이용 목적
+                2. 사용자 의무
               </h3>
               <p style={{ marginBottom: "1rem" }}>
-                수집된 개인정보는 서비스 제공, 거래 처리, 고객 지원을 위해서만
-                사용됩니다.
+                사용자는 타인의 저작권을 침해하지 않는 음성만을 업로드해야
+                합니다.
               </p>
 
               <h3 style={{ marginBottom: "1rem", color: "var(--gray-800)" }}>
-                3. 개인정보 보관 및 삭제
+                3. 거래 조건
               </h3>
-              <p style={{ marginBottom: "1rem" }}>
-                블록체인에 기록된 정보는 영구 보관되며, 기타 개인정보는 서비스
-                종료 시 삭제됩니다.
-              </p>
-
-              <h3 style={{ marginBottom: "1rem", color: "var(--gray-800)" }}>
-                4. 개인정보 제3자 제공
-              </h3>
-              <p>
-                법령에 의한 경우를 제외하고는 개인정보를 제3자에게 제공하지
-                않습니다.
-              </p>
+              <p>모든 거래는 블록체인에 기록되며, 취소할 수 없습니다.</p>
             </div>
           </CardContent>
         </Card>
@@ -84,4 +73,4 @@ const PrivacyPage = () => {
   );
 };
 
-export default PrivacyPage;
+export default TermsPage;

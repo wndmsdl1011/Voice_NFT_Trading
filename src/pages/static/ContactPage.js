@@ -5,10 +5,10 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "../components/ui/Card";
-import Button from "../components/ui/Button";
-import Input from "../components/ui/Input";
-import Textarea from "../components/ui/Textarea";
+} from "../../components/ui/Card";
+import Button from "../../components/ui/Button";
+import Input from "../../components/ui/Input";
+import Textarea from "../../components/ui/Textarea";
 
 const PageContainer = styled.div`
   min-height: 100vh;

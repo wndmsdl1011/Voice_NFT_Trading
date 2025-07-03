@@ -1,30 +1,10 @@
 import React from "react";
-import { Routes, Route } from "react-router-dom";
 import { AppProvider } from "./contexts/AppContext";
+import { Toaster } from "react-hot-toast";
 import styled from "styled-components";
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
-import HomePage from "./pages/HomePage";
-import CreatePage from "./pages/CreatePage";
-import MarketplacePage from "./pages/MarketplacePage";
-import NFTDetailsPage from "./pages/NFTDetailsPage";
-import ProfilePage from "./pages/ProfilePage";
-import LoginPage from "./pages/LoginPage";
-import AboutPage from "./pages/AboutPage";
-import FAQPage from "./pages/FAQPage";
-import TermsPage from "./pages/TermsPage";
-import ContactPage from "./pages/ContactPage";
-import HelpPage from "./pages/HelpPage";
-import PricingPage from "./pages/PricingPage";
-import PrivacyPage from "./pages/PrivacyPage";
-import DashboardPage from "./pages/DashboardPage";
-import SettingsPage from "./pages/SettingsPage";
-import ResellPage from "./pages/ResellPage";
-import SuccessPage from "./pages/SuccessPage";
-import DocsPage from "./pages/DocsPage";
-import ErrorPage from "./pages/ErrorPage";
-import LoadingPage from "./pages/LoadingPage";
-import TTSPage from "./pages/TTSPage";
+import AppRouter from "./router/router";
 import GlobalStyles from "./styles/GlobalStyles";
 
 const AppContainer = styled.div`
@@ -44,31 +24,64 @@ function App() {
       <AppContainer>
         <Header />
         <MainContent>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/marketplace" element={<MarketplacePage />} />
-            <Route path="/create" element={<CreatePage />} />
-            <Route path="/tts" element={<TTSPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/nft/:id" element={<NFTDetailsPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/resell/:id" element={<ResellPage />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/contact" element={<ContactPage />} />
-            <Route path="/docs" element={<DocsPage />} />
-            <Route path="/faq" element={<FAQPage />} />
-            <Route path="/help" element={<HelpPage />} />
-            <Route path="/pricing" element={<PricingPage />} />
-            <Route path="/privacy" element={<PrivacyPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/success" element={<SuccessPage />} />
-            <Route path="/terms" element={<TermsPage />} />
-            <Route path="/loading" element={<LoadingPage />} />
-            <Route path="*" element={<ErrorPage />} />
-          </Routes>
+          <AppRouter />
         </MainContent>
         <Footer />
+
+        {/* Toast notifications */}
+        <Toaster
+          position="top-right"
+          reverseOrder={false}
+          gutter={8}
+          containerClassName=""
+          containerStyle={{
+            top: 20,
+            right: 20,
+          }}
+          toastOptions={{
+            // Default options
+            duration: 4000,
+            style: {
+              background: "#363636",
+              color: "#fff",
+              fontWeight: "500",
+              borderRadius: "8px",
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+            },
+
+            // Success toasts
+            success: {
+              style: {
+                background: "#10B981",
+                color: "#fff",
+              },
+              iconTheme: {
+                primary: "#fff",
+                secondary: "#10B981",
+              },
+            },
+
+            // Error toasts
+            error: {
+              style: {
+                background: "#EF4444",
+                color: "#fff",
+              },
+              iconTheme: {
+                primary: "#fff",
+                secondary: "#EF4444",
+              },
+            },
+
+            // Loading toasts
+            loading: {
+              style: {
+                background: "#6B7280",
+                color: "#fff",
+              },
+            },
+          }}
+        />
       </AppContainer>
     </AppProvider>
   );

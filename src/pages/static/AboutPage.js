@@ -5,7 +5,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "../components/ui/Card";
+} from "../../components/ui/Card";
 
 const PageContainer = styled.div`
   min-height: 100vh;

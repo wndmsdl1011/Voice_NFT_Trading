@@ -1,197 +1,212 @@
-# 🎤 Spark TTS - Voice NFT Marketplace
+# 🎵 Spark TTS WebApp
 
-![React](https://img.shields.io/badge/React-19.0.0-61DAFB?style=flat&logo=react&logoColor=white)
-![Styled Components](https://img.shields.io/badge/Styled_Components-6.1.8-DB7093?style=flat&logo=styled-components&logoColor=white)
-![React Router](https://img.shields.io/badge/React_Router-6.8.1-CA4245?style=flat&logo=react-router&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-green?style=flat)
+AI 기반 음성 NFT 생성 및 TTS(Text-to-Speech) 플랫폼입니다. 사용자는 자신의 음성을 AI로 학습시켜 독특한 음성 NFT를 생성하고, 이를 통해 텍스트를 자연스러운 음성으로 변환할 수 있습니다.
 
-> 🚀 **AI 기반 음성 NFT 생성 및 거래 플랫폼**  
-> React 19의 최신 기능을 활용한 모던 웹 애플리케이션
+## ✨ 주요 기능
 
-## 📋 프로젝트 개요
+- 🎙️ **AI 음성 학습**: 사용자의 음성을 AI가 학습하여 개인화된 TTS 모델 생성
+- 🖼️ **음성 NFT 생성**: 학습된 음성을 블록체인 기반 NFT로 민팅
+- 🛒 **NFT 마켓플레이스**: 음성 NFT 거래 및 수집
+- 🎯 **TTS 스튜디오**: 소유한 음성 NFT로 텍스트를 음성으로 변환
+- 👤 **사용자 대시보드**: 개인 프로필 및 소유 NFT 관리
 
-Spark TTS는 사용자가 음성을 NFT로 생성하고 거래할 수 있는 혁신적인 마켓플레이스입니다. React 19의 최신 기능들을 활용하여 AI 기술과 블록체인 기반 NFT 거래를 제공합니다.
+## 🏗️ 프로젝트 구조
 
-### ✨ 주요 기능
+```
+src/
+├── components/           # 재사용 가능한 컴포넌트
+│   ├── layout/          # 레이아웃 컴포넌트 (Header, Footer)
+│   ├── ui/              # 기본 UI 컴포넌트 (Button, Card, Input 등)
+│   ├── common/          # 공통 컴포넌트
+│   └── features/        # 기능별 컴포넌트
+├── pages/               # 페이지 컴포넌트
+│   ├── auth/           # 인증 관련 페이지
+│   ├── marketplace/    # 마켓플레이스 관련 페이지
+│   ├── dashboard/      # 대시보드 관련 페이지
+│   ├── tts/           # TTS 스튜디오 관련 페이지
+│   └── static/        # 정적 페이지 (About, FAQ 등)
+├── hooks/              # 커스텀 React 훅
+├── utils/              # 유틸리티 함수들
+├── constants/          # 상수 정의
+├── services/           # API 서비스
+├── contexts/           # React Context
+├── router/             # 라우팅 설정
+└── styles/             # 글로벌 스타일
+```
 
-- 🎯 **AI 음성 생성**: 고품질 TTS 기술로 음성 NFT 생성
-- 🛒 **NFT 마켓플레이스**: 음성 NFT 구매, 판매, 경매
-- 👤 **사용자 프로필**: 개인 컬렉션 및 거래 내역 관리
-- 🔐 **지갑 연동**: MetaMask 등 다양한 암호화폐 지갑 지원
-- 📱 **반응형 디자인**: 모바일 및 데스크톱 최적화
+## 🚀 개선사항 (v2.0)
 
-### 🆕 React 19 새로운 기능 활용
+### �� 파일 구조 개선
 
-- **⚡ Actions & Form Actions**: 서버 액션과 폼 처리 최적화
-- **🔄 useOptimistic**: 낙관적 UI 업데이트로 즉각적인 반응성
-- **⏳ useTransition**: 비동기 상태 전환 관리
-- **🎯 useDeferredValue**: 검색 및 필터링 성능 최적화
-- **🧩 Context as Provider**: 간소화된 컨텍스트 API
-- **🧹 Ref Cleanup Functions**: 메모리 누수 방지
-- **⚠️ Enhanced Error Handling**: 세분화된 에러 처리
+- **모듈화된 페이지 구조**: 기능별로 페이지들을 폴더로 분리
+- **라우팅 분리**: `src/router/index.js`로 라우팅 로직 분리
+- **유틸리티 체계화**: hooks, utils, constants, services 폴더 추가
 
-## 🛠 기술 스택
+### 🔔 토스트 알림 시스템
 
-### Frontend
+- **react-hot-toast 라이브러리** 적용
+- **커스텀 토스트 훅**: `useToast` 훅으로 일관된 알림 관리
+- **사전 정의된 메시지**: 자주 사용하는 알림 메시지 상수화
+- **Promise 기반 토스트**: 비동기 작업에 대한 로딩/성공/실패 상태 표시
 
-- **React 19** - 최신 기능을 활용한 컴포넌트 기반 UI
-- **Styled Components 6** - CSS-in-JS 스타일링
-- **React Router 6** - SPA 라우팅
-- **Lucide React** - 모던 아이콘 세트
+### 🛠️ 개발자 경험 개선
 
-### React 19 Features
+- **상수 관리**: 라우트 경로 및 메시지 상수화
+- **헬퍼 함수**: 날짜 포맷팅, 텍스트 처리, 로컬 스토리지 등
+- **타입 안전성**: 향후 TypeScript 전환을 위한 구조 준비
 
-- **Actions**: 서버 액션 및 폼 처리
-- **useOptimistic**: 낙관적 업데이트
-- **useTransition**: 상태 전환 관리
-- **useDeferredValue**: 성능 최적화
-- **Enhanced Context**: 간소화된 Provider
-- **Ref Cleanup**: 메모리 관리
+## 🛠️ 기술 스택
 
-### Tools & Build
+- **Frontend**: React 19.0.0, styled-components
+- **Routing**: React Router DOM v6
+- **UI Components**: 커스텀 컴포넌트 라이브러리
+- **Icons**: Lucide React
+- **Notifications**: react-hot-toast
+- **Build Tool**: Create React App
 
-- **React Scripts 5** - 개발 환경 설정
-- **ESLint** - 코드 품질 관리
+## 📦 설치 및 실행
 
-## �� 시작하기
-
-### 사전 요구사항
+### 전제 조건
 
 - Node.js 16.0 이상
 - npm 또는 yarn
 
-### 설치 및 실행
+### 설치
 
 ```bash
 # 저장소 클론
-git clone https://github.com/wndmsdl1011/Voice_NFT_Trading.git
-cd Voice_NFT_Trading
+git clone <repository-url>
+cd spark-tts-webapp
 
 # 의존성 설치
-npm install
+npm install --legacy-peer-deps
 
 # 개발 서버 실행
 npm start
 ```
-
-개발 서버가 [http://localhost:3000](http://localhost:3000)에서 실행됩니다.
 
 ### 빌드
 
 ```bash
 # 프로덕션 빌드
 npm run build
+
+# 빌드 파일 미리보기
+npm run serve
 ```
 
-## 📁 프로젝트 구조
+## 🎯 사용 방법
 
-```
-src/
-├── components/          # 재사용 가능한 UI 컴포넌트
-│   ├── layout/         # 레이아웃 컴포넌트 (Header, Footer)
-│   └── ui/             # 기본 UI 컴포넌트 (Button, Card, Input)
-├── contexts/           # React 19 Context API
-│   └── AppContext.js   # 전역 상태 관리 (useOptimistic 활용)
-├── pages/              # 페이지 컴포넌트
-├── styles/             # 전역 스타일
-└── App.js              # 메인 앱 컴포넌트
-```
+### 1. 로그인
 
-## 🎨 주요 페이지
+- 소셜 로그인 (Instagram, X/Twitter, Facebook) 지원
+- 개발 환경에서는 자동으로 홈페이지로 리다이렉트
 
-| 페이지        | 설명                       | React 19 기능                 |
-| ------------- | -------------------------- | ----------------------------- |
-| 🏠 Home       | 랜딩 페이지 및 서비스 소개 | Enhanced Error Handling       |
-| 🛍 Marketplace | NFT 탐색 및 구매           | useDeferredValue              |
-| ✏️ Create     | 새로운 음성 NFT 생성       | useOptimistic, Actions        |
-| 👤 Profile    | 사용자 프로필 및 컬렉션    | useTransition                 |
-| 🔑 Login      | 소셜 로그인 및 지갑 연결   | Form Actions, 글래스모피즘 UI |
+### 2. AI 음성 NFT 생성
 
-## 🔧 React 19 기능 상세
+1. **음성 업로드**: 최소 30초 이상의 음성 샘플 제공
+2. **AI 학습**: 딥러닝 모델이 음성 특성 학습
+3. **메타데이터 추가**: NFT 제목, 설명, 태그 등 설정
+4. **NFT 민팅**: 블록체인에 음성 NFT 등록
 
-### Actions & Form Actions
+### 3. TTS 스튜디오 사용
+
+1. **음성 선택**: 소유한 음성 NFT 중 선택
+2. **텍스트 입력**: 변환할 텍스트 작성 (최대 1000자)
+3. **음성 생성**: AI가 텍스트를 선택한 음성으로 변환
+4. **다운로드**: 생성된 음성 파일 저장
+
+### 4. 마켓플레이스
+
+- 다른 사용자의 음성 NFT 구매
+- 자신의 음성 NFT 판매 및 재판매
+- 음성 미리보기 및 상세 정보 확인
+
+## 🔧 주요 컴포넌트
+
+### Toast 시스템
 
 ```javascript
-// Form Action으로 지갑 연결 처리
-const handleWalletConnect = async (formData) => {
-  const walletType = formData.get("walletType");
-  await connectWalletAction(walletType);
-};
+import { useToast } from "../hooks/useToast";
 
-<form action={handleWalletConnect}>
-  <button type="submit">지갑 연결</button>
-</form>;
-```
+const { showSuccess, showError, showPromise } = useToast();
 
-### useOptimistic Hook
+// 기본 사용법
+showSuccess("성공적으로 저장되었습니다!");
+showError("오류가 발생했습니다.");
 
-```javascript
-// 낙관적 업데이트로 즉시 UI 반영
-const [optimisticNfts, addOptimisticNft] = useOptimistic(
-  nfts,
-  (currentNfts, newNft) => [...currentNfts, { ...newNft, isPending: true }]
-);
-```
-
-### Enhanced Context
-
-```javascript
-// React 19: Context를 직접 Provider로 사용
-return <AppContext value={value}>{children}</AppContext>;
-```
-
-### Error Handling
-
-```javascript
-const root = createRoot(container, {
-  onUncaughtError: (error, errorInfo) => {
-    console.error("Uncaught error:", error, errorInfo);
-  },
-  onCaughtError: (error, errorInfo) => {
-    console.error("Caught error:", error, errorInfo);
-  },
+// Promise 기반 토스트
+showPromise(apiCall(), {
+  loading: "처리 중...",
+  success: "완료되었습니다!",
+  error: "실패했습니다.",
 });
 ```
 
+### 라우팅
+
+```javascript
+import { ROUTES } from "../constants/routes";
+import { useNavigate } from "react-router-dom";
+
+const navigate = useNavigate();
+navigate(ROUTES.MARKETPLACE);
+```
+
+### 유틸리티 함수
+
+```javascript
+import {
+  formatCurrency,
+  truncateText,
+  copyToClipboard,
+} from "../utils/helpers";
+
+const price = formatCurrency(1.5, "ETH"); // "1.5000 ETH"
+const shortText = truncateText("긴 텍스트...", 20);
+await copyToClipboard("복사할 텍스트");
+```
+
+## 🎨 디자인 시스템
+
+- **색상**: Emerald/Teal 그라데이션 기반
+- **타이포그래피**: 시스템 폰트 스택
+- **컴포넌트**: Glassmorphism 디자인
+- **반응형**: 모바일 우선 설계
+
 ## 🔄 버전 히스토리
 
-- **v1.1.0** - 로그인 페이지 UI/UX 대폭 개선
-  - 🎨 모던한 글래스모피즘 디자인 적용
-  - ✨ 부드러운 애니메이션 및 호버 효과 추가
-  - 🔧 Lucide React 최신 버전 호환성 개선 (Twitter → X 아이콘)
-  - 📱 반응형 레이아웃 및 가독성 최적화
-  - 🎯 소셜 로그인 버튼 디자인 및 간격 조정
-- **v1.0.0** - React 19 기반 초기 구현 완료
-  - useOptimistic을 활용한 낙관적 업데이트
-  - Form Actions로 지갑 연결 최적화
-  - Enhanced Error Handling 적용
-  - useDeferredValue로 검색 성능 개선
-- **v0.1.0** - 프로젝트 셋업 및 기본 구조 구축
+### v2.0.0 (현재)
 
-## 🔮 로드맵
+- 파일 구조 대대적 개선
+- react-hot-toast 토스트 시스템 도입
+- 라우팅 분리 및 상수 관리
+- 유틸리티 함수 및 커스텀 훅 추가
 
-- [ ] **React 19 Server Components** 도입
-- [ ] **Suspense** 기반 데이터 로딩 최적화
-- [ ] **use Hook** 활용한 비동기 처리 개선
-- [ ] **Resource Preloading APIs** 성능 최적화
-- [ ] **Custom Elements** 지원 확대
+### v1.1.0
+
+- UI/UX 개선 (Glassmorphism 디자인)
+- 로그인 페이지 개선
+- 아이콘 호환성 문제 해결
+
+### v1.0.0
+
+- 기본 TTS 웹앱 구조
+- NFT 생성 및 마켓플레이스 기능
+- 기본 UI 컴포넌트 라이브러리
 
 ## 🤝 기여하기
 
-1. 이 저장소를 Fork 합니다
-2. 새로운 기능 브랜치를 생성합니다 (`git checkout -b feature/amazing-feature`)
-3. 변경사항을 커밋합니다 (`git commit -m 'feat: Add amazing feature'`)
-4. 브랜치에 푸시합니다 (`git push origin feature/amazing-feature`)
-5. Pull Request를 생성합니다
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-## 📝 라이선스
+## 📄 라이선스
 
-이 프로젝트는 MIT 라이선스 하에 있습니다.
+이 프로젝트는 MIT 라이선스 하에 배포됩니다.
 
-## 📞 연락처
+## 📞 문의
 
-프로젝트 문의사항이 있으시면 이슈를 생성해 주세요.
-
----
-
-⭐ 이 프로젝트가 유용하다면 별표를 눌러주세요!
+프로젝트에 대한 문의사항이나 버그 리포트는 GitHub Issues를 통해 제출해 주세요.

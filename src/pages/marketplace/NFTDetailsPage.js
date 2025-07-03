@@ -2,13 +2,13 @@ import React from "react";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
 import { Play, Heart, Share2 } from "lucide-react";
-import Button from "../components/ui/Button";
+import Button from "../../components/ui/Button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "../components/ui/Card";
+} from "../../components/ui/Card";
 
 const PageContainer = styled.div`
   min-height: 100vh;

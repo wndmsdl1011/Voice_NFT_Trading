@@ -5,7 +5,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "../components/ui/Card";
+} from "../../components/ui/Card";
 import { TrendingUp, DollarSign, Music, Users } from "lucide-react";
 
 const PageContainer = styled.div`

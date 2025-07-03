@@ -1,8 +1,9 @@
 import React from "react";
 import styled from "styled-components";
 import { Instagram, Twitter, Facebook, Sparkles } from "lucide-react";
-import Button from "../components/ui/Button";
-import { Card } from "../components/ui/Card";
+import Button from "../../components/ui/Button";
+import { Card } from "../../components/ui/Card";
+import { useToast } from "../../hooks/useToast";
 
 const PageContainer = styled.div`
   min-height: 100vh;
@@ -315,8 +316,14 @@ const DecorationElement = styled.div`
 `;
 
 function LoginPage() {
+  const { showLoginSuccess, showLoginError, showLoading, dismissById } =
+    useToast();
+
   const handleSocialLogin = (platform) => {
     console.log(`${platform}으로 로그인 시도`);
+
+    // 로딩 토스트 표시
+    const loadingToastId = showLoading(`${platform}으로 로그인 중...`);
 
     // OAuth 인증 URL 설정
     const authUrls = {
@@ -330,11 +337,23 @@ function LoginPage() {
 
     // 개발 환경에서는 홈페이지로 리다이렉트 (실제 구현 시에는 위의 authUrls 사용)
     if (process.env.NODE_ENV === "development") {
-      // 개발 환경에서는 바로 홈으로 이동
-      window.location.href = "/";
+      // 시뮬레이션: 2초 후 성공
+      setTimeout(() => {
+        dismissById(loadingToastId);
+        showLoginSuccess();
+        // 개발 환경에서는 바로 홈으로 이동
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 1000);
+      }, 2000);
     } else {
       // 실제 환경에서는 OAuth URL로 이동
-      window.location.href = authUrls[platform];
+      try {
+        window.location.href = authUrls[platform];
+      } catch (error) {
+        dismissById(loadingToastId);
+        showLoginError();
+      }
     }
   };
 

@@ -1,11 +1,15 @@
 import React, { useState } from "react";
 import styled from "styled-components";
-import Button from "../components/ui/Button";
-import { Card, CardContent } from "../components/ui/Card";
-import Textarea from "../components/ui/Textarea";
-import Badge from "../components/ui/Badge";
-
-import { Avatar, AvatarImage, AvatarFallback } from "../components/ui/Avatar";
+import Button from "../../components/ui/Button";
+import { Card, CardContent } from "../../components/ui/Card";
+import Textarea from "../../components/ui/Textarea";
+import Badge from "../../components/ui/Badge";
+import {
+  Avatar,
+  AvatarImage,
+  AvatarFallback,
+} from "../../components/ui/Avatar";
+import { useToast } from "../../hooks/useToast";
 import {
   Play,
   Pause,
@@ -260,6 +264,8 @@ const TipList = styled.ul`
 `;
 
 function TTSPage() {
+  const { showPromise, showSuccess, showError } = useToast();
+
   const [selectedVoice, setSelectedVoice] = useState("");
   const [inputText, setInputText] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
@@ -294,13 +300,36 @@ function TTSPage() {
   ];
 
   const handleGenerate = async () => {
-    if (!selectedVoice || !inputText.trim()) return;
+    if (!selectedVoice || !inputText.trim()) {
+      showError("음성과 텍스트를 모두 선택해주세요.");
+      return;
+    }
 
     setIsGenerating(true);
-    // Simulate TTS generation
-    setTimeout(() => {
+
+    // TTS 생성 프로세스 시뮬레이션
+    const ttsPromise = new Promise((resolve, reject) => {
+      setTimeout(() => {
+        // 85% 확률로 성공
+        if (Math.random() > 0.15) {
+          resolve({ audioUrl: "/generated-audio.mp3", duration: "0:45" });
+        } else {
+          reject(new Error("음성 생성 중 오류가 발생했습니다."));
+        }
+      }, 3000);
+    });
+
+    try {
+      await showPromise(ttsPromise, {
+        loading: "AI가 음성을 생성하고 있습니다...",
+        success: "음성이 성공적으로 생성되었습니다!",
+        error: "음성 생성에 실패했습니다. 다시 시도해주세요.",
+      });
+    } catch (error) {
+      console.error("TTS generation failed:", error);
+    } finally {
       setIsGenerating(false);
-    }, 3000);
+    }
   };
 
   const handlePlay = () => {
@@ -309,6 +338,7 @@ function TTSPage() {
 
   const handleDownload = () => {
     console.log("Downloading audio...");
+    showSuccess("음성 파일 다운로드가 시작되었습니다.");
   };
 
   return (

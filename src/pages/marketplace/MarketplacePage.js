@@ -2,15 +2,15 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { Search, Play, Heart, Filter } from "lucide-react";
-import Button from "../components/ui/Button";
+import Button from "../../components/ui/Button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "../components/ui/Card";
-import Input from "../components/ui/Input";
+} from "../../components/ui/Card";
+import Input from "../../components/ui/Input";
 
 const PageContainer = styled.div`
   min-height: 100vh;

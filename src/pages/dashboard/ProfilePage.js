@@ -12,8 +12,8 @@ import {
   Twitter,
   Facebook,
 } from "lucide-react";
-import Button from "../components/ui/Button";
-import { Card, CardContent } from "../components/ui/Card";
+import Button from "../../components/ui/Button";
+import { Card, CardContent } from "../../components/ui/Card";
 
 const PageContainer = styled.div`
   min-height: 100vh;

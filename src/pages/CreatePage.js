@@ -6,6 +6,7 @@ import Input from "../components/ui/Input";
 import Textarea from "../components/ui/Textarea";
 import Badge from "../components/ui/Badge";
 import Progress from "../components/ui/Progress";
+import { useToast } from "../hooks/useToast";
 import {
   Upload,
   Mic,
@@ -386,6 +387,8 @@ const MintButton = styled(Button)`
 `;
 
 function CreatePage() {
+  const { showSuccess, showPromise } = useToast();
+
   const [currentStep, setCurrentStep] = useState(1);
   const [audioFile, setAudioFile] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -414,6 +417,7 @@ function CreatePage() {
     const file = event.target.files?.[0];
     if (file) {
       setAudioFile(file);
+      showSuccess(`${file.name} 파일이 업로드되었습니다.`);
       processAudio();
     }
   };
@@ -479,6 +483,34 @@ function CreatePage() {
 
   const handleMintNFT = () => {
     console.log("NFT 민팅 데이터:", { audioFile, formData });
+
+    // 민팅 프로세스 시뮬레이션
+    const mintingPromise = new Promise((resolve, reject) => {
+      setTimeout(() => {
+        // 90% 확률로 성공
+        if (Math.random() > 0.1) {
+          resolve({ tokenId: Math.floor(Math.random() * 10000) });
+        } else {
+          reject(new Error("민팅 중 오류가 발생했습니다."));
+        }
+      }, 3000);
+    });
+
+    showPromise(mintingPromise, {
+      loading: "NFT 민팅 중...",
+      success: (data) =>
+        `NFT가 성공적으로 민팅되었습니다! Token ID: ${data.tokenId}`,
+      error: "NFT 민팅에 실패했습니다. 다시 시도해주세요.",
+    })
+      .then(() => {
+        // 성공 시 마켓플레이스로 이동
+        setTimeout(() => {
+          window.location.href = "/marketplace";
+        }, 2000);
+      })
+      .catch(() => {
+        // 에러 처리는 이미 토스트로 표시됨
+      });
   };
 
   const steps = [
