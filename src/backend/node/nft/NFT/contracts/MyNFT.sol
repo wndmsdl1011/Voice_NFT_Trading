@@ -17,7 +17,7 @@ contract MyNFTs is ERC721URIStorage, Ownable {
 
         uint256 newItemId = _tokenIds.current();
         // IPFS 메타데이터 URI 사용
-        string memory tokenURI = "ipfs://bafybeibcbfo63nl6tw7f637hbbro7umcbrnxfz7lkbrp3xx34owebmjy2e"; // IPFS CID 메타데이터 URI
+        string memory tokenURI = "ipfs://bafybeihhid25f7ibq6n2tvsk3nnnalybs7rz7xxtnnopfwt555eczwxplu/1.png"; // IPFS CID 메타데이터 URI
         _mint(msg.sender, newItemId);
         _setTokenURI(newItemId, tokenURI);
 
