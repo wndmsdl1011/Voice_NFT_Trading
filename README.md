@@ -25,9 +25,20 @@
 
 🛠 Backend
 
-<img src="https://img.shields.io/badge/NODE-8FC708?style=for-the-badge&logo=NODE&logoColor=white">
+<img src="https://img.shields.io/badge/node.js-8FC708?style=for-the-badge&logo=node.js&logoColor=white">
+<img src="https://img.shields.io/badge/Solidity-363636?style=for-the-badge&logo=solidity&logoColor=white">
+<img src="https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white">
+
+🔐 인증
+
+<img src="https://img.shields.io/badge/OAuth2.0-3c3c3c?style=for-the-badge&logo=oauth&logoColor=white">
+<img src="https://img.shields.io/badge/Instagram-E4405F?style=for-the-badge&logo=instagram&logoColor=white">
+<img src="https://img.shields.io/badge/X-000000?style=for-the-badge&logo=x&logoColor=white">
 
 🧠 AI 음성 합성
+
+<img src="https://your-image-url.com/sparktss-icon.png" width="24" />
+<img src="https://img.shields.io/badge/SparkTTS-AI-blueviolet?style=for-the-badge">
 
 🗂 파일 저장
 
