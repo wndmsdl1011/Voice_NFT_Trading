@@ -21,19 +21,11 @@
 
 🚀 Frontend
 
-<img src="https://img.shields.io/badge/React-E34F26?style=for-the-badge&logo=React&logoColor=white">
-
+<img src="https://img.shields.io/badge/React-61D9FB?style=for-the-badge&logo=React&logoColor=white">
 
 🛠 Backend
 
-
-
-
-⛓ Blockchain
-
-🔐 인증
-
-
+<img src="https://img.shields.io/badge/NODE-8FC708?style=for-the-badge&logo=NODE&logoColor=white">
 
 🧠 AI 음성 합성
 
