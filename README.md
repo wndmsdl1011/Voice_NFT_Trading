@@ -17,7 +17,7 @@
 
 ---
 
-🧱 기술 스택
+## 🧱 기술 스택
 
 🚀 Frontend
 
@@ -45,7 +45,7 @@
   <img src="https://img.shields.io/badge/SparkTTS-AI-blueviolet?style=for-the-badge">
 </div>
 
-🗂 파일 저장
+🗂 Storage
 
 <div>
   <img src="https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white">  
