@@ -1,3 +1,5 @@
+// backend/src/server.js
+
 require('dotenv').config();
 
 const express = require('express');
@@ -5,11 +7,9 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const passport = require('passport');
 const session = require('express-session');
-const authRoutes = require('./routes/auth');
-
+const mainRouter = require('./routes'); // <-- 이 변수 이름으로 불러왔습니다.
 
 const app = express();
-
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -17,10 +17,10 @@ app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 
 // 세션 미들웨어
 app.use(session({
-  secret: process.env.JWT_SECRET,
+  secret: process.env.SESSION_SECRET || 'your_default_session_secret',
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false }
+  cookie: { secure: false ,  sameSite: 'lax'}
 }));
 
 // Passport 미들웨어
@@ -36,7 +36,7 @@ mongoose.connect(process.env.MONGO_URI)
   .catch(err => console.error('MongoDB connection error:', err));
 
 // 라우트 설정
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', mainRouter); // <-- authRoutes를 mainRouter로 변경!
 
 // 서버 시작
 const PORT = process.env.PORT || 5000;
