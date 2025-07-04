@@ -1,14 +1,13 @@
-// 인스타그램 관련 경로만 모아놓은 파일
-
 const express = require('express');
 const router = express.Router();
+const { handleOAuthCallback } = require('../controllers/auth.controller');
+const { authenticateOAuth } = require('../middlewares/passportAuth');
 const passport = require('passport');
-const authController = require('../controllers/auth.controller');
 
-// GET /api/auth/instagram  -> 인스타그램 로그인 시작
+// 인스타그램 로그인 시작
 router.get('/', passport.authenticate('instagram'));
 
-// GET /api/auth/instagram/callback -> 인스타그램 로그인 후 콜백 처리
-router.get('/callback', authController.handleInstagramCallback);
+// 콜백
+router.get('/callback', authenticateOAuth('instagram'), handleOAuthCallback);
 
 module.exports = router;

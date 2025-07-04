@@ -1,6 +1,6 @@
 // 데이터베이스 조회, 사용자 생성 등 실제 데이터와 관련된 순수한 로직을 처리합니다.
 
-const User = require('../models/User');
+const User = require('../models/User.model');
 
 // X(트위터) 로그인 비즈니스 로직
 async function processXLogin(profile) {
@@ -41,6 +41,5 @@ async function processInstagramLogin(profile) {
 
 module.exports = {
   processXLogin,
-  processInstagramLogin,
-  completeInstagramRegistration
+  processInstagramLogin
 };
