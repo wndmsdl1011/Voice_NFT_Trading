@@ -23,11 +23,6 @@ const UserSchema = new mongoose.Schema({
     unique: true,
     sparse: true
   },
-  xId: {
-    type: String,
-    unique: true,
-    sparse: true
-  },
   walletAddress: {  // <-- ⭐️ 지갑 주소 필드 추가
     type: String,
     unique: true,   // 지갑 주소는 유일해야 함 (하나의 지갑 = 하나의 계정)
