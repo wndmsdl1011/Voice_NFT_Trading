@@ -1,7 +1,7 @@
 // src/config/passport.config.js
 require('dotenv').config({ path: __dirname + '/../.env' });
 const passport = require('passport');
-const InstagramStrategy = require('passport-instagram').Strategy;
+const FacebookStrategy = require('passport-facebook').Strategy;
 const authService = require('../services/auth.service');
 
 module.exports = function (passport) {
@@ -16,12 +16,14 @@ module.exports = function (passport) {
   });
 
   // ✅ Instagram Strategy만 활성화
-  passport.use(new InstagramStrategy({
-    clientID: process.env.INSTAGRAM_CLIENT_ID,
-    clientSecret: process.env.INSTAGRAM_CLIENT_SECRET,
-    callbackURL: process.env.INSTAGRAM_CALLBACK_URL
+  passport.use(new FacebookStrategy({
+  clientID: process.env.FACEBOOK_CLIENT_ID,
+  clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
+  callbackURL: process.env.FACEBOOK_CALLBACK_URL,
   },
+  
   async (accessToken, refreshToken, profile, done) => {
+    console.log("[STRATEGY] facebook callback 실행됨");
     try {
       const { user, isNew, profile: newProfile } = await authService.processInstagramLogin(profile);
       if (!isNew) {
