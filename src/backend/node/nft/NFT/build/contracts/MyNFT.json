@@ -1,0 +1,7 @@
+{
+  "name":  "My Voice NFT #1",
+  "description": "내 첫 번째 음성 NFT",
+  "audio": "ipfs://bafkreieaammfbyybyf45wjwowkjjte75g3ppsrbahnls5vy5gsc6iqwwlu",      "attributes": [
+    { "trait_type": "Length", "value": "30s" }
+  ]
+}
