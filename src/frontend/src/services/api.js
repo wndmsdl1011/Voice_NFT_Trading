@@ -77,7 +77,15 @@ class ApiService {
 
   // 인증 관련 API
   auth = {
-    // Instagram 가입 완료
+    // Facebook 가입 완료
+    completeFacebook: (token, email, walletAddress) =>
+      this.post("/api/auth/facebook/complete-profile", {
+        profile: this.decodeToken(token)?.profile,
+        walletAddress:
+          walletAddress || "0x0000000000000000000000000000000000000000", // 임시 더미 주소
+      }),
+
+    // Instagram 가입 완료 (향후 사용)
     completeInstagram: (token, email) =>
       this.post("/api/auth/complete-instagram", { token, email }),
 
@@ -90,6 +98,24 @@ class ApiService {
       return Promise.resolve();
     },
   };
+
+  // JWT 토큰 디코딩 헬퍼
+  decodeToken(token) {
+    try {
+      const base64Url = token.split(".")[1];
+      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split("")
+          .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+          .join("")
+      );
+      return JSON.parse(jsonPayload);
+    } catch (error) {
+      console.error("토큰 디코딩 실패:", error);
+      return null;
+    }
+  }
 
   // 소셜 로그인 URL 생성
   getSocialLoginUrl(provider) {
