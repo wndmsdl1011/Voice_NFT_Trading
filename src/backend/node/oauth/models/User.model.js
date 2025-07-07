@@ -6,27 +6,25 @@ const UserSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
-  email: {
-    type: String,
-    unique: true,
-    sparse: true,
-    trim: true,
-    lowercase: true,
-  },
   provider: {
     type: String,
     required: true,
-    enum: ['instagram', 'x']
+    enum: ['instagram', 'x', 'facebook'], // 지원하는 OAuth 제공자 목록
   },
-  instagramId: {
+  facebookId: {
     type: String,
     unique: true,
     sparse: true
   },
-  walletAddress: {  // <-- ⭐️ 지갑 주소 필드 추가
+  profileUrl: { // 👈 user_link에서 받아온 Facebook 프로필 URL
     type: String,
-    unique: true,   // 지갑 주소는 유일해야 함 (하나의 지갑 = 하나의 계정)
-    sparse: true,   // null 값의 중복은 허용 (지갑을 아직 연결 안 한 사용자)
+    trim: true,
+    default: null
+  },
+  walletAddress: {
+    type: String,
+    unique: true,
+    sparse: true,
     trim: true
   },
   createdAt: {

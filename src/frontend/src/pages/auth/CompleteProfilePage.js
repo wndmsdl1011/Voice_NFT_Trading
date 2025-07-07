@@ -161,8 +161,7 @@ function CompleteProfilePage() {
 
     try {
       const response = await apiService.auth.completeInstagram(
-        onboardingToken,
-        email
+        onboardingToken
       );
 
       // 로그인 토큰 저장

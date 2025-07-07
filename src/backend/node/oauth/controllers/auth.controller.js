@@ -33,9 +33,43 @@ exports.handleOAuthCallback = (req, res) => {
       sameSite: 'Lax',
       maxAge: 600000,
     });
-    return res.redirect('http://localhost:3000/complete-profile');
+    return res.redirect(`http://localhost:3000/complete-profile?token=${onboardingToken}`);
   }
 
   console.warn('[CONTROLLER] 인증 실패 - user도 없고 info.profile도 없음');
   return res.redirect('http://localhost:3000/login?error=auth_failed');
+};
+
+exports.completeProfile = async (req, res) => {
+  try {
+    const { profile } = req.body;
+    const { walletAddress } = req.body;
+
+    if (!profile || !walletAddress) {
+      return res.status(400).json({ error: '필수 정보 누락' });
+    }
+
+    const newUser = new User({
+      username: profile.displayName || '익명',
+      provider: 'facebook',
+      facebookId: profile.id,
+      profileUrl: profile.profileUrl,
+      walletAddress,
+    });
+
+    await newUser.save();
+
+    const token = require('../utils/jwt').generateToken({ id: newUser._id });
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Lax',
+      maxAge: 3600000,
+    });
+
+    return res.status(201).json({ success: true, user: newUser });
+  } catch (err) {
+    console.error('[CONTROLLER] completeProfile 에러:', err);
+    return res.status(500).json({ error: '서버 오류' });
+  }
 };
