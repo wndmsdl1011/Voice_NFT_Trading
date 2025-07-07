@@ -5,7 +5,12 @@ import { Mail, User, Loader } from "lucide-react";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 import { Card } from "../../components/ui/Card";
-import { getTokenFromUrl, getErrorFromUrl, cleanUrl } from "../../utils/auth";
+import {
+  getTokenFromUrl,
+  getErrorFromUrl,
+  getTokenFromUrlOrCookie,
+  cleanUrl,
+} from "../../utils/auth";
 import { useAppContext } from "../../contexts/AppContext";
 import { useToast } from "../../hooks/useToast";
 import apiService from "../../services/api";
@@ -125,7 +130,6 @@ function CompleteProfilePage() {
   const [onboardingToken, setOnboardingToken] = useState(null);
 
   useEffect(() => {
-    const token = getTokenFromUrl();
     const error = getErrorFromUrl();
 
     if (error) {
@@ -134,10 +138,16 @@ function CompleteProfilePage() {
       return;
     }
 
+    // URL 파라미터와 쿠키 둘 다 확인 (온보딩 토큰의 경우 주로 URL에 있음)
+    const token = getTokenFromUrl() || getTokenFromUrlOrCookie();
+
     if (token) {
       setOnboardingToken(token);
       cleanUrl();
     } else {
+      console.error(
+        "온보딩 토큰을 찾을 수 없습니다 - URL과 쿠키 모두 확인했음"
+      );
       showToast.error("인증 토큰을 찾을 수 없습니다.");
       navigate("/login");
     }
@@ -160,9 +170,7 @@ function CompleteProfilePage() {
     setIsLoading(true);
 
     try {
-      const response = await apiService.auth.completeInstagram(
-        onboardingToken
-      );
+      const response = await apiService.auth.completeInstagram(onboardingToken);
 
       // 로그인 토큰 저장
       apiService.setToken(response.token);

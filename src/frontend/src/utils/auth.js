@@ -12,6 +12,36 @@ export const getErrorFromUrl = () => {
   return urlParams.get("error");
 };
 
+// 쿠키에서 토큰 추출
+export const getTokenFromCookie = (cookieName = "token") => {
+  try {
+    const cookies = document.cookie.split(";");
+    for (let cookie of cookies) {
+      const [name, value] = cookie.trim().split("=");
+      if (name === cookieName) {
+        return decodeURIComponent(value);
+      }
+    }
+    return null;
+  } catch (error) {
+    console.error("쿠키에서 토큰 추출 실패:", error);
+    return null;
+  }
+};
+
+// URL 또는 쿠키에서 토큰 추출 (fallback 로직)
+export const getTokenFromUrlOrCookie = () => {
+  // 1. URL 파라미터에서 먼저 확인
+  const urlToken = getTokenFromUrl();
+  if (urlToken) {
+    return urlToken;
+  }
+
+  // 2. 쿠키에서 확인 (fallback)
+  const cookieToken = getTokenFromCookie();
+  return cookieToken;
+};
+
 // JWT 토큰 디코딩 (페이로드만)
 export const decodeToken = (token) => {
   try {

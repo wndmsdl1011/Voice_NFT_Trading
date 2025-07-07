@@ -2,7 +2,12 @@ import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { CheckCircle, Loader } from "lucide-react";
-import { getTokenFromUrl, getErrorFromUrl, cleanUrl } from "../../utils/auth";
+import {
+  getTokenFromUrl,
+  getErrorFromUrl,
+  getTokenFromUrlOrCookie,
+  cleanUrl,
+} from "../../utils/auth";
 import { useAppContext } from "../../contexts/AppContext";
 import { useToast } from "../../hooks/useToast";
 import apiService from "../../services/api";
@@ -85,7 +90,6 @@ function AuthSuccessPage() {
 
   useEffect(() => {
     const handleAuth = async () => {
-      const token = getTokenFromUrl();
       const error = getErrorFromUrl();
 
       if (error) {
@@ -93,6 +97,9 @@ function AuthSuccessPage() {
         navigate("/login");
         return;
       }
+
+      // URL 파라미터와 쿠키 둘 다 확인하는 fallback 로직
+      const token = getTokenFromUrlOrCookie();
 
       if (token) {
         try {
@@ -111,9 +118,12 @@ function AuthSuccessPage() {
         } catch (error) {
           console.error("Authentication error:", error);
           showToast.error("사용자 정보를 가져오는데 실패했습니다.");
+          // 토큰이 유효하지 않은 경우 제거
+          apiService.removeToken();
           navigate("/login");
         }
       } else {
+        console.error("토큰을 찾을 수 없습니다 - URL과 쿠키 모두 확인했음");
         showToast.error("인증 토큰을 찾을 수 없습니다.");
         navigate("/login");
       }
