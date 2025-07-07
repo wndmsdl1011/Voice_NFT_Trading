@@ -1,10 +1,10 @@
-const User = require('../models/User.model');
+const User = require("../models/User.model");
 
 // ✅ X 로그인 제거
 
-// ✅ Instagram 로그인만 유지
+// ✅ Facebook 로그인 처리
 async function processFacebookLogin(profile) {
-  let user = await User.findOne({ instagramId: profile.id });
+  let user = await User.findOne({ facebookId: profile.id });
   if (user) {
     return { user, isNew: false };
   } else {
@@ -13,5 +13,5 @@ async function processFacebookLogin(profile) {
 }
 
 module.exports = {
-  processFacebookLogin
+  processFacebookLogin,
 };
