@@ -170,16 +170,31 @@ function CompleteProfilePage() {
     setIsLoading(true);
 
     try {
-      const response = await apiService.auth.completeInstagram(onboardingToken);
+      console.log("페이스북 프로필 완성 API 호출:", { onboardingToken, email });
+
+      // 페이스북 API 호출로 변경
+      const response = await apiService.auth.completeFacebook(
+        onboardingToken,
+        email
+      );
+
+      console.log("페이스북 API 응답:", response);
 
       // 로그인 토큰 저장
-      apiService.setToken(response.token);
+      if (response.token) {
+        apiService.setToken(response.token);
+      }
       setUser(response.user);
 
       showToast.success("회원가입이 완료되었습니다!");
       navigate("/dashboard");
     } catch (error) {
       console.error("Profile completion error:", error);
+      console.error("Error details:", {
+        message: error.message,
+        status: error.status,
+        stack: error.stack,
+      });
       showToast.error(error.message || "회원가입 중 오류가 발생했습니다.");
     } finally {
       setIsLoading(false);
@@ -192,7 +207,7 @@ function CompleteProfilePage() {
         <Header>
           <Title>프로필 완성</Title>
           <Description>
-            Instagram 계정 연동을 위해
+            Facebook 계정 연동을 위해
             <br />
             이메일 주소를 입력해주세요.
           </Description>
