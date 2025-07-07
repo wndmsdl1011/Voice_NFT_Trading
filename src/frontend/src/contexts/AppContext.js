@@ -51,6 +51,7 @@ export const AppProvider = ({ children }) => {
           console.error("사용자 정보 로드 실패:", error);
           // 토큰이 유효하지 않은 경우 제거
           apiService.removeToken();
+          setUser(null);
         }
       }
       setIsInitialized(true);
