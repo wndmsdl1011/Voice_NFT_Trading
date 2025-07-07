@@ -6,8 +6,8 @@ module.exports = async function (callback) {
     const me = accounts[0]; // 민팅할 계정
 
     // ✅ 입력할 CID (파일마다 교체)
-    const metadataCID = "bafkreigyz63ovxmvh5jsd2p7ibiepo5tkldkdstdr4d4bgxskhlplbay5a";
-    const audioCID = "bafkreieaammfbyybyf45wjwowkjjte75g3ppsrbahnls5vy5gsc6iqwwlu";
+    const metadataCID = "bafkreiaalno2knw4qykuaafvy462bhafnxjbt55qt2erpjgmgknvxaxy2a";
+    const audioCID = "bafkreibbp6ebtw7w2fu43s7mv3gxvxcdvgd2zydu2mygo76ol3pohacixu";
 
     const instance = await MyAudioNFT.deployed();
     const result = await instance.mintNFT(metadataCID, audioCID, { from: me });
