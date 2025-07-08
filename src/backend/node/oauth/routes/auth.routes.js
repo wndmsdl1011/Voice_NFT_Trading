@@ -19,4 +19,5 @@ router.get('/naver/callback', naverController.handleNaverCallback);
 
 // Index
 router.post('/complete-profile', indexController.completeProfile);
+router.get('/profile', indexController.getProfile);
 module.exports = router;

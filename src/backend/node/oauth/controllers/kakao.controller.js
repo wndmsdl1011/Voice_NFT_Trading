@@ -23,13 +23,15 @@ exports.handleKakaoCallback = async (req, res) => {
 
         if (!user) {
             isNew = true;
-            // 🔥 DB 저장하지 않음, 대신 user 객체만 임시 구성
+            console.log('[카카오 회원가입] 신규 사용자 DB 저장 시도:', { kakaoId, nickname, profileImage });
+            // DB에 신규 사용자 저장 (이메일 필드 제거)
             user = await User.create({
                 provider: 'kakao',
                 kakaoId,
                 nickname,
-                profileImage,
+                profileImage
             });
+            console.log('[카카오 회원가입] DB 저장 완료:', user);
         }
 
         // ✅ 신규일 경우에도 kakaoId 기반으로 토큰 발급 (DB 저장 전)
@@ -50,6 +52,7 @@ exports.handleKakaoCallback = async (req, res) => {
         res.redirect(redirectUrl);
     } catch (err) {
         console.error('❌ 카카오 로그인 실패:', err.message);
+        console.error('❌ 카카오 로그인 실패 상세:', err);
         res.status(500).send('로그인 처리 실패');
     }
 };

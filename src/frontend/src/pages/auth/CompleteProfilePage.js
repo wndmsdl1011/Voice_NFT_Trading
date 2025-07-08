@@ -127,7 +127,7 @@ const LoadingIcon = styled(Loader)`
 function CompleteProfilePage() {
   const navigate = useNavigate();
   const { setUser } = useAppContext();
-  const { showToast } = useToast();
+  const { showSuccess, showError } = useToast();
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [onboardingToken, setOnboardingToken] = useState(null);
@@ -138,7 +138,7 @@ function CompleteProfilePage() {
     const error = getErrorFromUrl();
 
     if (error) {
-      showToast.error("인증 중 오류가 발생했습니다.");
+      showError("인증 중 오류가 발생했습니다.");
       navigate("/login");
       return;
     }
@@ -152,23 +152,23 @@ function CompleteProfilePage() {
       console.error(
         "온보딩 토큰을 찾을 수 없습니다 - URL과 쿠키 모두 확인했음"
       );
-      showToast.error("인증 토큰을 찾을 수 없습니다.");
+      showError("인증 토큰을 찾을 수 없습니다.");
       navigate("/login");
     }
-  }, [navigate, showToast]);
+  }, [navigate, showError]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!onboardingToken) {
-      showToast.error("인증 토큰이 없습니다.");
+      showError("인증 토큰이 없습니다.");
       navigate("/login");
       return;
     }
 
     // ✅ MetaMask 설치 여부 확인
     if (!window.ethereum) {
-      showToast.error("MetaMask가 설치되어 있지 않습니다.");
+      showError("MetaMask가 설치되어 있지 않습니다.");
       console.error("🛑 window.ethereum 없음");
       return;
     }
@@ -204,24 +204,56 @@ function CompleteProfilePage() {
 
       console.log("✅ API 응답:", response);
 
-      // 로그인 토큰 저장
-      if (response?.token) {
+      // 응답 검증 - response가 없거나 success가 명시적으로 false인 경우 에러 처리
+      if (!response) {
+        throw new Error("서버에서 응답을 받지 못했습니다.");
+      }
+
+      if (response.success === false) {
+        const message = response.error || response.message || "회원가입 중 오류가 발생했습니다.";
+        throw new Error(message);
+      }
+
+      // 성공 응답 처리 - success가 true이거나 undefined인 경우 성공으로 간주
+      if (response.token) {
         apiService.setToken(response.token);
       }
 
-      setUser(response.user);
+      if (response.user) {
+        setUser(response.user);
+      }
 
-      showToast.success("회원가입이 완료되었습니다!");
+      showSuccess("회원가입이 완료되었습니다!");
       navigate("/dashboard");
     } catch (error) {
       console.error("❌ Profile completion error:", error);
-
-      const message =
-        error?.response?.data?.error ||
-        error?.message ||
-        "회원가입 중 오류가 발생했습니다.";
-
-      showToast.error(message);
+      let message = "회원가입 중 오류가 발생했습니다.";
+      
+      try {
+        if (error?.code === 4001) {
+          message = "MetaMask 연결이 거부되었습니다. 다시 시도해주세요.";
+        } else if (typeof error === 'string') {
+          message = error;
+        } else if (error && typeof error === 'object' && error !== null) {
+          if (error.message) {
+            message = error.message;
+          } else if (error.error) {
+            message = error.error;
+          } else {
+            try {
+              message = JSON.stringify(error);
+            } catch (stringifyError) {
+              console.error("JSON stringify 실패:", stringifyError);
+              message = "알 수 없는 오류가 발생했습니다.";
+            }
+          }
+        }
+      } catch (msgError) {
+        console.error("에러 메시지 처리 실패:", msgError);
+        message = "알 수 없는 오류가 발생했습니다.";
+      }
+      
+      showError(message);
     } finally {
       setIsLoading(false);
     }

@@ -35,16 +35,29 @@ class ApiService {
     };
 
     try {
+      console.log(`🌐 API 요청: ${config.method || 'GET'} ${url}`);
       const response = await fetch(url, config);
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "API request failed");
+      // 응답 상태 로깅
+      console.log(`📡 API 응답 상태: ${response.status} ${response.statusText}`);
+
+      let responseData;
+      try {
+        responseData = await response.json();
+        console.log(`📦 API 응답 데이터:`, responseData);
+      } catch (jsonError) {
+        console.error("❌ JSON 파싱 실패:", jsonError);
+        throw new Error(`서버 응답을 파싱할 수 없습니다. (${response.status})`);
       }
 
-      return await response.json();
+      if (!response.ok) {
+        const errorMessage = responseData?.error || responseData?.message || "API request failed";
+        throw new Error(errorMessage);
+      }
+
+      return responseData;
     } catch (error) {
-      console.error("API Error:", error);
+      console.error("💥 API Error:", error);
       throw error;
     }
   }
