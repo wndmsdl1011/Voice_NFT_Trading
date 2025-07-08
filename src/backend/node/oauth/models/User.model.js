@@ -14,8 +14,8 @@ const userSchema = new mongoose.Schema(
 
         // 각 플랫폼별 ID
         kakaoId: { type: String, unique: true, sparse: true },
-        facebookId: { type: String, unique: true, sparse: true },
-        instagramId: { type: String, unique: true, sparse: true },
+        naverId: { type: String, unique: true, sparse: true },
+        googleId: { type: String, unique: true, sparse: true },
 
         // 선택 정보
         walletAddress: { type: String, unique: true, sparse: true, trim: true },

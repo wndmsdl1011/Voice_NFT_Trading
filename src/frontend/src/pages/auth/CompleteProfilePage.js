@@ -157,37 +157,55 @@ function CompleteProfilePage() {
     }
   }, [navigate, showToast]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
     if (!onboardingToken) {
       showToast.error("인증 토큰이 없습니다.");
       navigate("/login");
       return;
     }
 
+    // ✅ MetaMask 설치 여부 확인
+    if (!window.ethereum) {
+      showToast.error("MetaMask가 설치되어 있지 않습니다.");
+      console.error("🛑 window.ethereum 없음");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      // 🦊 메타마스크 연결
+      // 🦊 MetaMask 연결 요청
       const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-      const selectedWallet = accounts[0];
-      if (!selectedWallet) {
-        throw new Error("메타마스크 지갑 연결 실패");
+      const walletAddress = accounts?.[0];
+
+      if (!walletAddress) {
+        throw new Error("메타마스크 지갑 연결 실패 (지갑 주소 없음)");
       }
 
-      // 🛠️ 스마트 컨트랙트 인스턴스 생성
-      const instance = new web3.eth.Contract(contractABI, contractAddress);
-      setAccount(selectedWallet);
-      setContract(instance);
+      console.log("🦊 연결된 지갑 주소:", walletAddress);
 
-      console.log("카카오 프로필 완성 API 호출:", { onboardingToken, selectedWallet });
+      // ✅ web3 인스턴스 및 컨트랙트 연결 (선택)
+      const web3Instance = new Web3(window.ethereum);
+      const contractInstance = new web3Instance.eth.Contract(contractABI, contractAddress);
 
-      // ✅ 카카오 프로필 등록 (지갑 주소만 포함)
+      // 상태 저장
+      setWeb3(web3Instance);
+      setAccount(walletAddress);
+      setContract(contractInstance);
+
+      // ✅ API 요청
+      console.log("📡 completeKakao API 요청:", { onboardingToken, walletAddress });
+
       const response = await apiService.auth.completeKakao(onboardingToken, {
-        walletAddress: selectedWallet,
+        walletAddress,
       });
 
-      // 🔑 로그인 토큰 저장
-      if (response.token) {
+      console.log("✅ API 응답:", response);
+
+      // 로그인 토큰 저장
+      if (response?.token) {
         apiService.setToken(response.token);
       }
 
@@ -196,12 +214,20 @@ function CompleteProfilePage() {
       showToast.success("회원가입이 완료되었습니다!");
       navigate("/dashboard");
     } catch (error) {
-      console.error("Profile completion error:", error);
-      showToast.error(error.message || "회원가입 중 오류가 발생했습니다.");
+      console.error("❌ Profile completion error:", error);
+
+      const message =
+        error?.response?.data?.error ||
+        error?.message ||
+        "회원가입 중 오류가 발생했습니다.";
+
+      showToast.error(message);
     } finally {
       setIsLoading(false);
     }
   };
+
+
 
 
   return (
