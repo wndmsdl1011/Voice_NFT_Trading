@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema(
         // 공통
         provider: {
             type: String,
-            enum: ['kakao', 'naver'],
+            enum: ['kakao', 'naver', 'google'],
             required: true,
         },
         nickname: String,
