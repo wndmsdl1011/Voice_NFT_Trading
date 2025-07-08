@@ -15,27 +15,29 @@ exports.completeProfile = async (req, res) => {
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const userId = decoded.id;
-        console.log('✅ 프로필 저장 요청:', { userId, body: req.body });
-        const { walletAddress, age, job, voiceCategory } = req.body;
+        const provider = decoded.provider;
+        const { walletAddress } = req.body;
 
-        const updatedUser = await User.findByIdAndUpdate(
-            userId,
-            { walletAddress, age, job, voiceCategory },
-            { new: true }
-        );
+        if (!walletAddress) {
+            return res.status(400).json({ error: '지갑 주소가 누락되었습니다.' });
+        }
 
-        if (!updatedUser) {
+        const existingUser = await User.findOne({ [`${provider}Id`]: userId });
+
+        if (!existingUser) {
             return res.status(404).json({ error: '사용자 없음' });
         }
 
-        // 새 JWT 발급 (선택사항)
+        existingUser.walletAddress = walletAddress;
+        await existingUser.save();
+
         const newToken = jwt.sign(
-            { id: updatedUser._id, nickname: updatedUser.nickname },
+            { id: existingUser._id, nickname: existingUser.nickname },
             process.env.JWT_SECRET,
             { expiresIn: '1h' }
         );
 
-        res.json({ success: true, token: newToken, user: updatedUser });
+        res.json({ success: true, token: newToken, user: existingUser });
     } catch (err) {
         console.error('❌ 프로필 저장 실패:', err.message);
         res.status(500).json({ error: '프로필 저장 실패' });

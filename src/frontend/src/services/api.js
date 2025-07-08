@@ -82,8 +82,12 @@ class ApiService {
     // Facebook 가입 완료
     completeKakao: (token, profileData) =>
       this.post("/api/auth/complete-profile", profileData, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json", // ✅ 문자열로!
+        },
       }),
+
 
     // ✅ 사용자 프로필 조회
     getProfile: () => this.get("/api/auth/profile"),
