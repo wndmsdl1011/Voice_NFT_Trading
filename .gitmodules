@@ -1,0 +1,3 @@
+[submodule "src/backend/Spark-TTS-main/spark-TTS-0.5B"]
+	path = src/backend/Spark-TTS-main/spark-TTS-0.5B
+	url = https://huggingface.co/SparkAudio/Spark-TTS-0.5B/tree/main

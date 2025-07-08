@@ -634,7 +634,7 @@ function CreatePage() {
                     style={{ display: "none" }}
                   />
                 </div>
-
+{/* 
                 <div style={{ textAlign: "center", margin: "1.5rem 0" }}>
                   <span style={{ color: "#9ca3af" }}>또는</span>
                 </div>
@@ -662,7 +662,7 @@ function CreatePage() {
                         : "클릭하여 녹음 시작"}
                     </p>
                   </div>
-                </div>
+                </div> */}
 
                 {(isProcessing || isTraining) && (
                   <ProcessingContainer>
