@@ -283,7 +283,6 @@ output.wav
 *.ckpt
 *.safetensors
 pretrained_models/
-models/
 checkpoints/
 
 # TTS specific
