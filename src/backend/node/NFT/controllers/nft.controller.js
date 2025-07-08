@@ -3,9 +3,9 @@ const path = require('path');
 const { exec } = require('child_process');
 
 exports.mintNFT = (req, res) => {
-    const rootPath = path.resolve(__dirname, '../../');
+    const rootPath = path.resolve(__dirname, '../');
     const trufflePath = path.join(rootPath, 'truffle-project');
-    const frontendPath = path.join(rootPath, 'src/front/src/contracts');
+    const frontendPath = path.join(rootPath, 'front/src/contracts');
 
     const command = `
         cd "${trufflePath}" && \

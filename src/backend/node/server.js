@@ -1,9 +1,9 @@
 require('dotenv').config();
 const express = require('express');
 const dotenv = require('dotenv');
-const mongoose = require('./Oauth/utils/db');
+const mongoose = require('./oauth/utils/db');
 
-const authRoutes = require('./Oauth/routes/auth.routes');
+const authRoutes = require('./oauth/routes/auth.routes');
 const nftRoutes = require('./NFT/routes/nft.routes');
 const userRoutes = require('./Oauth/routes/user.routes');
 const cors = require('cors');
