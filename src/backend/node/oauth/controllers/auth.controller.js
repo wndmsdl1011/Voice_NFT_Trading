@@ -16,13 +16,17 @@ exports.handleOAuthCallback = (req, res) => {
   if (user) {
     console.log("[CONTROLLER] 기존 사용자 로그인:", user);
     const token = generateToken({ id: user.id });
+
+    // 쿠키에도 토큰 저장 (기존 방식 유지)
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "Lax",
       maxAge: 3600000,
     });
-    return res.redirect("http://localhost:3000/auth-success");
+
+    // URL 파라미터로도 토큰 전달 (프론트엔드 호환성)
+    return res.redirect(`http://localhost:3000/auth-success?token=${token}`);
   }
 
   if (info?.profile) {
