@@ -29,7 +29,6 @@ exports.handleKakaoCallback = async (req, res) => {
                 provider: 'kakao',
                 kakaoId,
                 nickname,
-                email,
                 profileImage,
             });
         }
