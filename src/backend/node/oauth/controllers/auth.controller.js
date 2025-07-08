@@ -25,8 +25,7 @@ exports.handleOAuthCallback = (req, res) => {
       maxAge: 3600000,
     });
 
-    // URL 파라미터로도 토큰 전달 (프론트엔드 호환성)
-    return res.redirect(`http://localhost:3000/auth-success?token=${token}`);
+    return res.redirect("http://localhost:3000/auth-success");
   }
 
   if (info?.profile) {
