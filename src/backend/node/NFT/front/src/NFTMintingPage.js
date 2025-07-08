@@ -4,8 +4,10 @@ import axios from 'axios';
 import './NFTMintingPage.css';
 import MyAudioNFT from './contracts/MyAudioNFT.json';
 
+const networkId = process.env.REACT_APP_NETWORK_ID || '1337';
+const contractAddress = MyAudioNFT.networks?.[networkId]?.address;
 const contractABI = MyAudioNFT.abi;
-const contractAddress = process.env.REACT_APP_CONTRACT_ADDRESS;
+
 const PINATA_API_KEY = process.env.REACT_APP_PINATA_API_KEY;
 const PINATA_SECRET_KEY = process.env.REACT_APP_PINATA_SECRET_API_KEY;
 
@@ -43,16 +45,14 @@ const NFTMintingPage = () => {
     if (selected.type.startsWith('image/')) {
       setPreviewUrl(URL.createObjectURL(selected));
     } else {
-      setPreviewUrl(null); // 이미지 외엔 미리보기 없음
+      setPreviewUrl(null);
     }
   };
 
   const uploadToPinata = async (file) => {
     const formData = new FormData();
     formData.append('file', file);
-
-    const metadata = JSON.stringify({ name: file.name });
-    formData.append('pinataMetadata', metadata);
+    formData.append('pinataMetadata', JSON.stringify({ name: file.name }));
 
     const response = await axios.post('https://api.pinata.cloud/pinning/pinFileToIPFS', formData, {
       maxContentLength: 'Infinity',
@@ -85,29 +85,38 @@ const NFTMintingPage = () => {
 
   const handleMint = async () => {
     try {
-      if (!account || !contract || !file || !nftName || !nftDesc) {
+      if (!file || !nftName || !nftDesc) {
         alert('⚠️ 모든 필드를 입력하세요.');
         return;
       }
-
+  
+      setStatus('🚀 스마트 컨트랙트 자동 배포 중...');
+      await axios.post('http://localhost:5000/deploy'); // 백엔드가 Truffle 배포 + ABI 복사함
+  
       setStatus('📦 Pinata에 오디오 파일 업로드 중...');
       const audioCID = await uploadToPinata(file);
-
+  
       setStatus('📝 메타데이터 생성 및 업로드 중...');
       const metadataCID = await uploadMetadataToPinata(nftName, nftDesc, audioCID);
-
-      setStatus('⛏️ 스마트 컨트랙트 호출 중...');
-      const result = await contract.methods
-        .mintNFT(metadataCID, audioCID)
-        .send({ from: account });
-
-      const tokenId = result.events.Transfer.returnValues.tokenId;
-      setStatus(`✅ 민팅 완료! Token ID: ${tokenId}`);
+  
+      const web3Instance = new Web3(window.ethereum);
+      const netId = await web3Instance.eth.net.getId();
+      const contractABI = MyAudioNFT.abi;
+      const contractAddress = MyAudioNFT.networks[netId]?.address;
+  
+      const instance = new web3Instance.eth.Contract(contractABI, contractAddress);
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+  
+      setStatus('⛏️ 민팅 중...');
+      const result = await instance.methods.mintNFT(metadataCID, audioCID).send({ from: accounts[0] });
+  
+      setStatus(`✅ 민팅 완료! Token ID: ${result.events?.Transfer?.returnValues?.tokenId ?? '(응답 없음)'}`);
     } catch (err) {
       console.error(err);
-      setStatus('❌ 민팅 실패. 콘솔을 확인하세요.');
+      setStatus('❌ 민팅 실패');
     }
   };
+  
 
   return (
     <div className="container">
