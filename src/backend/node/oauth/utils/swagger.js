@@ -23,7 +23,7 @@ const options = {
                         _id: { type: 'string' },
                         provider: {
                             type: 'string',
-                            enum: ['kakao', 'naver', 'google'],
+                            enum: ['kakao', 'naver'],
                         },
                         nickname: { type: 'string' },
                         email: { type: 'string' },
