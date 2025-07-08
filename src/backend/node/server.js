@@ -28,9 +28,7 @@ console.log('nftRoutes:', typeof nftRoutes);
 console.log('userRoutes:', typeof userRoutes);
 
 app.use('/api/auth', authRoutes);
-app.use('/api/nft', nftRoutes);
-app.use('/api/user', userRoutes);
-
+ // ✨ 새로 추가: AI 음성 NFT 라우트 등록 ✨
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
