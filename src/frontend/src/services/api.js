@@ -50,29 +50,31 @@ class ApiService {
   }
 
   // GET 요청
-  async get(endpoint) {
-    return this.request(endpoint, { method: "GET" });
+  async get(endpoint, options = {}) {
+    return this.request(endpoint, { method: "GET" }, options);
   }
 
   // POST 요청
-  async post(endpoint, data) {
+  async post(endpoint, data, options) {
     return this.request(endpoint, {
       method: "POST",
       body: JSON.stringify(data),
+      ...options,
     });
   }
 
   // PUT 요청
-  async put(endpoint, data) {
+  async put(endpoint, data, options = {}) {
     return this.request(endpoint, {
       method: "PUT",
       body: JSON.stringify(data),
+      ...options,
     });
   }
 
   // DELETE 요청
-  async delete(endpoint) {
-    return this.request(endpoint, { method: "DELETE" });
+  async delete(endpoint, options = {}) {
+    return this.request(endpoint, { method: "DELETE" }, options);
   }
 
   // 인증 관련 API

@@ -1,6 +1,7 @@
 const { getKakaoToken, getKakaoUserInfo } = require('../services/kakaoAuth.service');
 const User = require('../models/user.model');
 const { generateToken } = require('../utils/jwt');
+const jwt = require('jsonwebtoken');
 
 exports.completeProfile = async (req, res) => {
     const authHeader = req.headers.authorization;
@@ -14,7 +15,7 @@ exports.completeProfile = async (req, res) => {
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const userId = decoded.id;
-
+        console.log('✅ 프로필 저장 요청:', { userId, body: req.body });
         const { walletAddress, age, job, voiceCategory } = req.body;
 
         const updatedUser = await User.findByIdAndUpdate(
