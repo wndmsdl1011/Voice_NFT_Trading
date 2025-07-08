@@ -1,10 +1,11 @@
 require('dotenv').config();
 const express = require('express');
 const dotenv = require('dotenv');
-const mongoose = require('./Oauth/utils/db');
+const mongoose = require('./oauth/utils/db');
 
-const authRoutes = require('./Oauth/routes/auth.routes');
-const voiceNFTRoutes = require('./voice_nft/routes/voice_nft.routes'); 
+const authRoutes = require('./oauth/routes/auth.routes');
+const nftRoutes = require('./NFT/routes/nft.routes');
+const userRoutes = require('./Oauth/routes/user.routes');
 const cors = require('cors');
 
 // Swagger 설정
@@ -27,7 +28,7 @@ console.log('nftRoutes:', typeof nftRoutes);
 console.log('userRoutes:', typeof userRoutes);
 
 app.use('/api/auth', authRoutes);
-app.use('/api/voice-nfts', voiceNFTRoutes); // ✨ 새로 추가: AI 음성 NFT 라우트 등록 ✨
+ // ✨ 새로 추가: AI 음성 NFT 라우트 등록 ✨
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

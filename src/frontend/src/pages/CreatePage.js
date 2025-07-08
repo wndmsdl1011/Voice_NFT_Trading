@@ -480,7 +480,7 @@ function CreatePage() {
       setTimeout(() => {
         setIsRecording(false);
         processAudio();
-      }, 5000);
+      }, 8000);
     }
   };
 
