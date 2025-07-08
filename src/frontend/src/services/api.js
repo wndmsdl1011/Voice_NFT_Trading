@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
 class ApiService {
   constructor() {
@@ -78,18 +78,12 @@ class ApiService {
   // 인증 관련 API
   auth = {
     // Facebook 가입 완료
-    completeFacebook: (token, email, walletAddress) =>
-      this.post("/api/auth/facebook/complete-profile", {
-        profile: this.decodeToken(token)?.profile,
-        walletAddress:
-          walletAddress || "0x0000000000000000000000000000000000000000", // 임시 더미 주소
+    completeKakao: (token, profileData) =>
+      this.post("/api/auth/kakao/complete-profile", profileData, {
+        headers: { Authorization: `Bearer ${token}` },
       }),
 
-    // Instagram 가입 완료 (향후 사용)
-    completeInstagram: (token, email) =>
-      this.post("/api/auth/complete-instagram", { token, email }),
-
-    // 사용자 프로필 조회
+    // ✅ 사용자 프로필 조회
     getProfile: () => this.get("/api/auth/profile"),
 
     // 로그아웃

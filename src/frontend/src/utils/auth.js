@@ -2,8 +2,10 @@ import apiService from "../services/api";
 
 // URL에서 토큰 추출
 export const getTokenFromUrl = () => {
-  const urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get("token");
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get("token");
+  console.log("[getTokenFromUrl] 추출된 token 값:", token, typeof token);
+  return token;
 };
 
 // URL에서 에러 추출

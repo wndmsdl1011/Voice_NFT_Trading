@@ -331,7 +331,7 @@ function LoginPage() {
       const platformMap = {
         instagram: "instagram",
         twitter: "x",
-        facebook: "facebook",
+        facebook: "kakao",
       };
 
       startSocialLogin(platformMap[platform] || platform);

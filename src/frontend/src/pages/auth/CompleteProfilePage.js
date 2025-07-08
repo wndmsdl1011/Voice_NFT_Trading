@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import { Mail, User, Loader } from "lucide-react";
+import { Loader } from "lucide-react";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 import { Card } from "../../components/ui/Card";
@@ -14,7 +14,10 @@ import {
 import { useAppContext } from "../../contexts/AppContext";
 import { useToast } from "../../hooks/useToast";
 import apiService from "../../services/api";
-
+import Web3 from 'web3';
+import MyAudioNFT from '../../contracts/MyAudioNFT.json';
+const contractABI = MyAudioNFT.abi;
+const contractAddress = process.env.REACT_APP_CONTRACT_ADDRESS;
 const PageContainer = styled.div`
   min-height: 100vh;
   display: flex;
@@ -128,7 +131,9 @@ function CompleteProfilePage() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [onboardingToken, setOnboardingToken] = useState(null);
-
+  const [account, setAccount] = useState('');
+  const [web3, setWeb3] = useState(null);
+  const [contract, setContract] = useState(null);
   useEffect(() => {
     const error = getErrorFromUrl();
 
@@ -140,10 +145,9 @@ function CompleteProfilePage() {
 
     // URL 파라미터와 쿠키 둘 다 확인 (온보딩 토큰의 경우 주로 URL에 있음)
     const token = getTokenFromUrl() || getTokenFromUrlOrCookie();
-
+    console.log("온보딩 토큰 확인:", token);
     if (token) {
       setOnboardingToken(token);
-      cleanUrl();
     } else {
       console.error(
         "온보딩 토큰을 찾을 수 없습니다 - URL과 쿠키 모두 확인했음"
@@ -153,14 +157,7 @@ function CompleteProfilePage() {
     }
   }, [navigate, showToast]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!email.trim()) {
-      showToast.error("이메일을 입력해주세요.");
-      return;
-    }
-
+  const handleSubmit = async () => {
     if (!onboardingToken) {
       showToast.error("인증 토큰이 없습니다.");
       navigate("/login");
@@ -170,36 +167,42 @@ function CompleteProfilePage() {
     setIsLoading(true);
 
     try {
-      console.log("페이스북 프로필 완성 API 호출:", { onboardingToken, email });
+      // 🦊 메타마스크 연결
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      const selectedWallet = accounts[0];
+      if (!selectedWallet) {
+        throw new Error("메타마스크 지갑 연결 실패");
+      }
 
-      // 페이스북 API 호출로 변경
-      const response = await apiService.auth.completeFacebook(
-        onboardingToken,
-        email
-      );
+      // 🛠️ 스마트 컨트랙트 인스턴스 생성
+      const instance = new web3.eth.Contract(contractABI, contractAddress);
+      setAccount(selectedWallet);
+      setContract(instance);
 
-      console.log("페이스북 API 응답:", response);
+      console.log("카카오 프로필 완성 API 호출:", { onboardingToken, selectedWallet });
 
-      // 로그인 토큰 저장
+      // ✅ 카카오 프로필 등록 (지갑 주소만 포함)
+      const response = await apiService.auth.completeKakao(onboardingToken, {
+        walletAddress: selectedWallet,
+      });
+
+      // 🔑 로그인 토큰 저장
       if (response.token) {
         apiService.setToken(response.token);
       }
+
       setUser(response.user);
 
       showToast.success("회원가입이 완료되었습니다!");
       navigate("/dashboard");
     } catch (error) {
       console.error("Profile completion error:", error);
-      console.error("Error details:", {
-        message: error.message,
-        status: error.status,
-        stack: error.stack,
-      });
       showToast.error(error.message || "회원가입 중 오류가 발생했습니다.");
     } finally {
       setIsLoading(false);
     }
   };
+
 
   return (
     <PageContainer>
@@ -207,26 +210,12 @@ function CompleteProfilePage() {
         <Header>
           <Title>프로필 완성</Title>
           <Description>
-            Facebook 계정 연동을 위해
-            <br />
-            이메일 주소를 입력해주세요.
+            MetaMask와 연결하기 위해 버튼을 클릭해주세요
+
           </Description>
         </Header>
 
         <Form onSubmit={handleSubmit}>
-          <InputGroup>
-            <Label htmlFor="email">이메일 주소</Label>
-            <StyledInput
-              id="email"
-              type="email"
-              placeholder="your@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={isLoading}
-              required
-            />
-          </InputGroup>
-
           <SubmitButton type="submit" disabled={isLoading}>
             {isLoading ? (
               <>
