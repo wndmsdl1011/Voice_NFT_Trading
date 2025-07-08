@@ -91,7 +91,7 @@ const NFTMintingPage = () => {
       }
   
       setStatus('🚀 스마트 컨트랙트 자동 배포 중...');
-      await axios.post('http://localhost:5000/deploy'); // 백엔드가 Truffle 배포 + ABI 복사함
+      await axios.post('http://localhost:8000/api/nft/mint'); // 백엔드가 Truffle 배포 + ABI 복사함
   
       setStatus('📦 Pinata에 오디오 파일 업로드 중...');
       const audioCID = await uploadToPinata(file);
