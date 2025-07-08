@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import { Menu, Wallet, User } from "lucide-react";
+import { Menu, Wallet, User, LogOut } from "lucide-react";
 import Button from "../ui/Button";
+import { useAppContext } from "../../contexts/AppContext";
 
 const HeaderContainer = styled.header`
   border-bottom: 1px solid var(--teal-100);
@@ -223,22 +224,31 @@ const navigation = [
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isConnected, setIsConnected] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const navigate = useNavigate();
+  const { user, logoutAction } = useAppContext();
 
   const handleUserMenuToggle = () => {
     setShowUserMenu(!showUserMenu);
   };
 
   const handleLogout = () => {
-    setIsConnected(false);
+    logoutAction();
     setShowUserMenu(false);
+    navigate("/");
   };
 
   const handleProfileClick = () => {
     navigate("/profile");
     setShowUserMenu(false);
+  };
+
+  // 사용자 이름의 첫 글자 추출 (닉네임이나 이메일에서)
+  const getUserInitial = () => {
+    if (!user) return "사";
+    if (user.nickname) return user.nickname.charAt(0);
+    if (user.email) return user.email.charAt(0).toUpperCase();
+    return "사";
   };
 
   return (
@@ -261,20 +271,52 @@ const Header = () => {
           </Nav>
 
           <UserSection>
-            {isConnected ? (
+            {user ? (
               <UserMenu>
                 <UserButton onClick={handleUserMenuToggle}>
-                  <Avatar>사</Avatar>
+                  {user.profileImage ? (
+                    <img 
+                      src={user.profileImage} 
+                      alt="프로필" 
+                      style={{
+                        width: "2rem",
+                        height: "2rem",
+                        borderRadius: "50%",
+                        objectFit: "cover"
+                      }}
+                    />
+                  ) : (
+                    <Avatar>{getUserInitial()}</Avatar>
+                  )}
                 </UserButton>
                 {showUserMenu && (
                   <DropdownMenu>
+                    <div style={{ 
+                      padding: "0.5rem", 
+                      borderBottom: "1px solid var(--gray-200)",
+                      marginBottom: "0.25rem"
+                    }}>
+                      <div style={{ 
+                        fontSize: "0.875rem", 
+                        fontWeight: "500",
+                        color: "var(--gray-900)"
+                      }}>
+                        {user.nickname || user.email || "사용자"}
+                      </div>
+                      <div style={{ 
+                        fontSize: "0.75rem", 
+                        color: "var(--gray-500)"
+                      }}>
+                        {user.email || "이메일 없음"}
+                      </div>
+                    </div>
                     <DropdownItem onClick={handleProfileClick}>
                       <User />
                       마이페이지
                     </DropdownItem>
                     <DropdownItem onClick={handleLogout}>
-                      <Wallet />
-                      지갑 연결 해제
+                      <LogOut />
+                      로그아웃
                     </DropdownItem>
                   </DropdownMenu>
                 )}

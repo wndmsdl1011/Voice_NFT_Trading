@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema(
             required: true,
         },
         nickname: String,
-        email: { type: String, trim: true, lowercase: true },
+        email: { type: String, trim: true, lowercase: true, unique: true, sparse: true },
         profileImage: String,
 
         // 각 플랫폼별 ID
