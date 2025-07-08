@@ -306,43 +306,6 @@ const FooterText = styled.p`
   font-weight: 500;
 `;
 
-const DecorationElement = styled.div`
-  position: absolute;
-  width: 6px;
-  height: 6px;
-  background: linear-gradient(135deg, #10b981, #0891b2);
-  border-radius: 50%;
-  opacity: 0.6;
-
-  &.dot-1 {
-    top: 20%;
-    left: 15%;
-    animation: float 3s ease-in-out infinite;
-  }
-
-  &.dot-2 {
-    top: 60%;
-    right: 20%;
-    animation: float 3s ease-in-out infinite 1s;
-  }
-
-  &.dot-3 {
-    bottom: 30%;
-    left: 25%;
-    animation: float 3s ease-in-out infinite 2s;
-  }
-
-  @keyframes float {
-    0%,
-    100% {
-      transform: translateY(0px);
-    }
-    50% {
-      transform: translateY(-10px);
-    }
-  }
-`;
-
 function LoginPage() {
   const { showLoginSuccess, showLoginError, showLoading, dismissById } =
     useToast();
@@ -371,10 +334,6 @@ function LoginPage() {
 
   return (
     <PageContainer>
-      <DecorationElement className="dot-1" />
-      <DecorationElement className="dot-2" />
-      <DecorationElement className="dot-3" />
-
       <Container>
         <LoginCard>
           <CardHeader>
