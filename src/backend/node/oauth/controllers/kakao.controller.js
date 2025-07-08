@@ -17,7 +17,6 @@ exports.handleKakaoCallback = async (req, res) => {
         const kakaoId = kakaoData.id;
         const nickname = kakaoData.kakao_account.profile.nickname;
         const profileImage = kakaoData.kakao_account.profile.profile_image_url;
-        const email = kakaoData.kakao_account.email;
 
         let user = await User.findOne({ kakaoId });
         let isNew = false;
