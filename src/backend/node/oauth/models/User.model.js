@@ -1,38 +1,32 @@
 const mongoose = require('mongoose');
 
-const UserSchema = new mongoose.Schema({
-  username: {
-    type: String,
-    required: true,
-    trim: true,
-  },
-  email: {
-    type: String,
-    unique: true,
-    sparse: true,
-    trim: true,
-    lowercase: true,
-  },
-  provider: {
-    type: String,
-    required: true,
-    enum: ['instagram', 'x']
-  },
-  instagramId: {
-    type: String,
-    unique: true,
-    sparse: true
-  },
-  walletAddress: {  // <-- ⭐️ 지갑 주소 필드 추가
-    type: String,
-    unique: true,   // 지갑 주소는 유일해야 함 (하나의 지갑 = 하나의 계정)
-    sparse: true,   // null 값의 중복은 허용 (지갑을 아직 연결 안 한 사용자)
-    trim: true
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
+const userSchema = new mongoose.Schema(
+    {
+        // 공통
+        provider: {
+            type: String,
+            enum: ['kakao', 'naver', 'google'],
+            required: true,
+        },
+        nickname: String,
+        email: { type: String, trim: true, lowercase: true, unique: true, sparse: true },
+        profileImage: String,
 
-module.exports = mongoose.model('User', UserSchema);
+        // 각 플랫폼별 ID
+        kakaoId: { type: String, unique: true, sparse: true },
+        naverId: { type: String, unique: true, sparse: true },
+        googleId: { type: String, unique: true, sparse: true },
+
+        // 선택 정보
+        walletAddress: { type: String, unique: true, sparse: true, trim: true },
+        age: { type: Number },
+        job: { type: String },
+        voiceCategory: { type: String },
+
+        // 기타
+        createdAt: { type: Date, default: Date.now },
+    },
+    { timestamps: true }
+);
+
+module.exports = mongoose.model('User', userSchema);

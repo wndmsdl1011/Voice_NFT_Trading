@@ -18,6 +18,7 @@ import {
   Play,
   Pause,
   Volume2,
+  Image,
 } from "lucide-react";
 
 const PageContainer = styled.div`
@@ -386,6 +387,19 @@ const MintButton = styled(Button)`
   }
 `;
 
+const ImagePreview = styled.div`
+  margin-top: 1rem;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #bbf7d0;
+`;
+
+const PreviewImage = styled.img`
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+`;
+
 function CreatePage() {
   const { showSuccess, showPromise } = useToast();
 
@@ -403,8 +417,12 @@ function CreatePage() {
     title: "",
     description: "",
     tags: "",
+    price: "",
+    image: null,
   });
+  const [imagePreview, setImagePreview] = useState(null);
   const fileInputRef = useRef(null);
+  const imageInputRef = useRef(null);
 
   const sampleTexts = [
     "안녕하세요, 저는 새로 학습된 AI 음성입니다. 자연스러운 발음으로 말씀드리고 있어요.",
@@ -484,10 +502,8 @@ function CreatePage() {
   const handleMintNFT = () => {
     console.log("NFT 민팅 데이터:", { audioFile, formData });
 
-    // 민팅 프로세스 시뮬레이션
     const mintingPromise = new Promise((resolve, reject) => {
       setTimeout(() => {
-        // 90% 확률로 성공
         if (Math.random() > 0.1) {
           resolve({ tokenId: Math.floor(Math.random() * 10000) });
         } else {
@@ -503,7 +519,6 @@ function CreatePage() {
       error: "NFT 민팅에 실패했습니다. 다시 시도해주세요.",
     })
       .then(() => {
-        // 성공 시 마켓플레이스로 이동
         setTimeout(() => {
           window.location.href = "/marketplace";
         }, 2000);
@@ -511,6 +526,22 @@ function CreatePage() {
       .catch(() => {
         // 에러 처리는 이미 토스트로 표시됨
       });
+  };
+
+  const handleImageUpload = (event) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setFormData({ ...formData, image: file });
+
+      // 이미지 미리보기 생성
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
+
+      showSuccess(`${file.name} 이미지가 업로드되었습니다.`);
+    }
   };
 
   const steps = [
@@ -530,7 +561,6 @@ function CreatePage() {
           </Description>
         </Header>
 
-        {/* Step Indicator */}
         <StepIndicator>
           <StepContainer>
             {steps.map((step, index) => {
@@ -559,7 +589,6 @@ function CreatePage() {
           </StepContainer>
         </StepIndicator>
 
-        {/* Step Content */}
         <div style={{ maxWidth: "1024px", margin: "0 auto" }}>
           {currentStep === 1 && (
             <StyledCard>
@@ -873,6 +902,61 @@ function CreatePage() {
                   <HelpText>예: 남성, 따뜻함, 내레이션, 한국어</HelpText>
                 </FormGroup>
 
+                <FormGroup>
+                  <Label>판매 가격 (ETH) *</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="0.00"
+                    value={formData.price}
+                    onChange={(e) =>
+                      setFormData({ ...formData, price: e.target.value })
+                    }
+                    style={{ borderColor: "#bbf7d0" }}
+                  />
+                  <HelpText>NFT 판매 가격을 ETH 단위로 입력하세요</HelpText>
+                </FormGroup>
+
+                <FormGroup>
+                  <Label>마켓플레이스 이미지</Label>
+                  <UploadArea onClick={() => imageInputRef.current?.click()}>
+                    <Image
+                      size={32}
+                      style={{ margin: "0 auto 0.5rem", color: "#4ade80" }}
+                    />
+                    <p style={{ fontSize: "0.875rem", color: "#6b7280" }}>
+                      {formData.image
+                        ? formData.image.name
+                        : "클릭하여 이미지 업로드"}
+                    </p>
+                    <p
+                      style={{
+                        fontSize: "0.75rem",
+                        color: "#9ca3af",
+                        marginTop: "0.25rem",
+                      }}
+                    >
+                      JPG, PNG, GIF (최대 10MB, 권장: 500x500px)
+                    </p>
+                  </UploadArea>
+                  <input
+                    ref={imageInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    style={{ display: "none" }}
+                  />
+                  {imagePreview && (
+                    <ImagePreview>
+                      <PreviewImage src={imagePreview} alt="NFT 미리보기" />
+                    </ImagePreview>
+                  )}
+                  <HelpText>
+                    마켓플레이스에 표시될 NFT 대표 이미지를 업로드하세요
+                  </HelpText>
+                </FormGroup>
+
                 <InfoCard color="#fffbeb" borderColor="#fde68a">
                   <InfoTitle style={{ color: "#d97706" }}>
                     💡 TTS 사용 권한
@@ -885,11 +969,19 @@ function CreatePage() {
 
                 <Button
                   onClick={handleNextStep}
-                  disabled={!formData.title || !formData.description}
+                  disabled={
+                    !formData.title ||
+                    !formData.description ||
+                    !formData.price ||
+                    parseFloat(formData.price) <= 0
+                  }
                   style={{
                     width: "100%",
                     background:
-                      formData.title && formData.description
+                      formData.title &&
+                      formData.description &&
+                      formData.price &&
+                      parseFloat(formData.price) > 0
                         ? "linear-gradient(135deg, #059669, #0e7490)"
                         : "#9ca3af",
                     border: "none",
@@ -919,6 +1011,18 @@ function CreatePage() {
                   <SummaryItem>
                     <SummaryLabel>제목:</SummaryLabel>
                     <SummaryValue>{formData.title || "제목 없음"}</SummaryValue>
+                  </SummaryItem>
+                  <SummaryItem>
+                    <SummaryLabel>판매 가격:</SummaryLabel>
+                    <SummaryValue>
+                      {formData.price ? `${formData.price} ETH` : "가격 없음"}
+                    </SummaryValue>
+                  </SummaryItem>
+                  <SummaryItem>
+                    <SummaryLabel>이미지:</SummaryLabel>
+                    <SummaryValue>
+                      {formData.image ? "업로드됨" : "없음"}
+                    </SummaryValue>
                   </SummaryItem>
                   <SummaryItem>
                     <SummaryLabel>학습 상태:</SummaryLabel>

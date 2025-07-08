@@ -1,8 +1,13 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { CheckCircle, Loader } from "lucide-react";
-import { getTokenFromUrl, getErrorFromUrl, cleanUrl } from "../../utils/auth";
+import {
+  getTokenFromUrl,
+  getErrorFromUrl,
+  getTokenFromUrlOrCookie,
+  cleanUrl,
+} from "../../utils/auth";
 import { useAppContext } from "../../contexts/AppContext";
 import { useToast } from "../../hooks/useToast";
 import apiService from "../../services/api";
@@ -81,46 +86,104 @@ const Spinner = styled(Loader)`
 function AuthSuccessPage() {
   const navigate = useNavigate();
   const { setUser } = useAppContext();
-  const { showToast } = useToast();
+  const { showSuccess, showError } = useToast();
+  const ref = useRef(null);
 
   useEffect(() => {
+    if (ref.current) return; // 이미 실행됐으면 중단
+    ref.current = true;
+
     const handleAuth = async () => {
-      const token = getTokenFromUrl();
       const error = getErrorFromUrl();
 
       if (error) {
-        showToast.error("로그인 중 오류가 발생했습니다.");
+        showError("로그인 중 오류가 발생했습니다.");
         navigate("/login");
         return;
       }
 
-      if (token) {
-        try {
-          // 토큰 저장
-          apiService.setToken(token);
+      // URL 파라미터와 쿠키 둘 다 확인하는 fallback 로직
+      const token = getTokenFromUrlOrCookie();
 
-          // 사용자 정보 가져오기
-          const userProfile = await apiService.auth.getProfile();
-          setUser(userProfile);
+      if (!token) {
+        console.error("토큰을 찾을 수 없습니다 - URL과 쿠키 모두 확인했음");
+        showError("인증 토큰을 찾을 수 없습니다.");
+        navigate("/login");
+        return;
+      }
 
-          showToast.success("로그인이 완료되었습니다!");
+      try {
+        // 토큰 저장
+        apiService.setToken(token);
 
-          // URL 정리 후 대시보드로 이동
-          cleanUrl();
-          navigate("/dashboard");
-        } catch (error) {
-          console.error("Authentication error:", error);
-          showToast.error("사용자 정보를 가져오는데 실패했습니다.");
-          navigate("/login");
+        // 사용자 정보 가져오기
+        console.log("사용자 프로필 요청 중...");
+        const userProfile = await apiService.auth.getProfile();
+        console.log("userProfile 응답:", userProfile);
+
+        // API 응답 구조 검증
+        if (!userProfile) {
+          throw new Error("서버에서 응답을 받지 못했습니다.");
         }
-      } else {
-        showToast.error("인증 토큰을 찾을 수 없습니다.");
+
+        // 성공/실패 상태 체크 - success 필드가 명시적으로 false인 경우만 실패로 처리
+        if (userProfile.success === false) {
+          throw new Error(userProfile.error || userProfile.message || "프로필 조회에 실패했습니다.");
+        }
+
+        // 사용자 데이터 검증 (다양한 응답 구조 지원)
+        const userData = userProfile.user || userProfile.data || userProfile;
+        
+        if (!userData || (typeof userData !== 'object') || Array.isArray(userData)) {
+          throw new Error("사용자 정보가 올바르지 않습니다.");
+        }
+
+        // 필수 사용자 정보 체크
+        if (!userData._id && !userData.id && !userData.kakaoId) {
+          throw new Error("사용자 식별 정보가 없습니다.");
+        }
+
+        // 사용자 정보 설정
+        setUser(userData);
+        showSuccess("로그인이 완료되었습니다!");
+
+        // URL 정리 후 대시보드로 이동
+        cleanUrl();
+        navigate("/dashboard");
+
+      } catch (error) {
+        console.error("Authentication error:", error);
+        
+        // 에러 메시지 추출 - 안전한 접근
+        let errorMessage = "사용자 정보를 가져오는데 실패했습니다.";
+        
+        if (error) {
+          if (typeof error === "string") {
+            errorMessage = error;
+          } else if (typeof error === "object" && error !== null) {
+            if (error.message) {
+              errorMessage = error.message;
+            } else if (error.error) {
+              errorMessage = error.error;
+            } else {
+              try {
+                errorMessage = JSON.stringify(error);
+              } catch (stringifyError) {
+                console.error("JSON stringify 실패:", stringifyError);
+                errorMessage = "알 수 없는 오류가 발생했습니다.";
+              }
+            }
+          }
+        }
+
+        showError(errorMessage);
+        apiService.removeToken();
         navigate("/login");
       }
     };
 
     handleAuth();
-  }, [navigate, setUser, showToast]);
+  }, [navigate, setUser, showSuccess, showError]);
 
   return (
     <PageContainer>

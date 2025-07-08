@@ -11,9 +11,15 @@ import {
   Instagram,
   Twitter,
   Facebook,
+  Edit3,
+  Camera,
+  Check,
+  X
 } from "lucide-react";
 import Button from "../../components/ui/Button";
 import { Card, CardContent } from "../../components/ui/Card";
+import { useAppContext } from "../../contexts/AppContext";
+import { useToast } from "../../hooks/useToast";
 
 const PageContainer = styled.div`
   min-height: 100vh;
@@ -343,25 +349,36 @@ const EmptyState = styled.div`
 
 const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState("created");
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedBio, setEditedBio] = useState("");
+  const { user } = useAppContext();
+  const { showSuccess, showError } = useToast();
 
-  const user = {
-    name: "음성 아티스트",
-    username: "@음성아티스트",
-    bio: "카리스마 프로그래머",
-    avatar: "음",
-    socialPlatform: "instagram", // instagram, twitter, facebook
-    walletAddress: "0x1234...5678",
-    balance: "12.5 ETH",
-    stats: {
-      created: 12,
-      collected: 8,
-      sold: 15,
-      earnings: "23.5 ETH",
-    },
+  const getUserInitial = () => {
+    if (!user) return "사";
+    if (user.nickname) return user.nickname.charAt(0);
+    if (user.email) return user.email.charAt(0).toUpperCase();
+    return "사";
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "정보 없음";
+    return new Date(dateString).toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const formatWalletAddress = (address) => {
+    if (!address) return "지갑 연결 안됨";
+    return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
   };
 
   const getSocialIcon = (platform) => {
     switch (platform) {
+      case "kakao":
+        return <span style={{ fontSize: '0.75rem', fontWeight: 'bold' }}>카</span>;
       case "instagram":
         return <Instagram />;
       case "twitter":
@@ -369,44 +386,139 @@ const ProfilePage = () => {
       case "facebook":
         return <Facebook />;
       default:
-        return null;
+        return <span style={{ fontSize: '0.75rem', fontWeight: 'bold' }}>소</span>;
     }
   };
 
   const getSocialPlatformName = (platform) => {
     switch (platform) {
+      case "kakao":
+        return "카카오";
       case "instagram":
         return "Instagram";
       case "twitter":
         return "X (Twitter)";
       case "facebook":
         return "Facebook";
+      case "naver":
+        return "네이버";
+      case "google":
+        return "구글";
       default:
-        return "";
+        return platform || "소셜 로그인";
     }
   };
 
   const handleCopyWallet = () => {
+    if (!user?.walletAddress) {
+      showError("연결된 지갑이 없습니다.");
+      return;
+    }
     navigator.clipboard.writeText(user.walletAddress);
-    console.log("지갑 주소가 복사되었습니다");
+    showSuccess("지갑 주소가 복사되었습니다!");
+  };
+
+  const handleEditBio = () => {
+    setEditedBio(user?.bio || "");
+    setIsEditing(true);
+  };
+
+  const handleSaveBio = () => {
+    // TODO: API 호출로 실제 저장 구현
+    showSuccess("프로필이 업데이트되었습니다!");
+    setIsEditing(false);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditedBio("");
+  };
+
+  // 사용자가 없으면 로딩 또는 에러 상태 표시
+  if (!user) {
+    return (
+      <PageContainer>
+        <Container>
+          <div style={{ textAlign: 'center', padding: '4rem 0' }}>
+            <h2>사용자 정보를 불러오는 중...</h2>
+            <p>잠시만 기다려주세요.</p>
+          </div>
+        </Container>
+      </PageContainer>
+    );
+  }
+
+  // 통계 데이터 (실제 데이터로 대체 필요)
+  const stats = {
+    created: 0, // 실제 생성한 NFT 수
+    collected: 0, // 실제 수집한 NFT 수
+    sold: 0, // 실제 판매한 NFT 수
+    earnings: "0 ETH", // 실제 수익
   };
 
   return (
     <PageContainer>
       <Container>
         <ProfileHeader>
-          <div className="avatar">{user.avatar}</div>
+          <div className="avatar">
+            {user.profileImage ? (
+              <img 
+                src={user.profileImage} 
+                alt="프로필" 
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  borderRadius: "50%"
+                }}
+              />
+            ) : (
+              getUserInitial()
+            )}
+          </div>
           <div className="profile-info">
-            <h1>{user.name}</h1>
-            <p className="username">{user.username}</p>
-            <p className="bio">{user.bio}</p>
+            <h1>{user.nickname || user.email || "사용자"}</h1>
+            <p className="username">@{user.nickname?.replace(/\s+/g, '').toLowerCase() || "user"}</p>
+            
+            {isEditing ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                <input
+                  type="text"
+                  value={editedBio}
+                  onChange={(e) => setEditedBio(e.target.value)}
+                  placeholder="자신을 소개해보세요..."
+                  style={{
+                    flex: 1,
+                    padding: '0.5rem',
+                    border: '1px solid var(--gray-300)',
+                    borderRadius: '0.25rem'
+                  }}
+                />
+                <Button size="sm" onClick={handleSaveBio}>
+                  <Check size={14} />
+                </Button>
+                <Button size="sm" variant="outline" onClick={handleCancelEdit}>
+                  <X size={14} />
+                </Button>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                <p className="bio">{user.bio || "아직 소개가 없습니다."}</p>
+                <Button size="sm" variant="ghost" onClick={handleEditBio}>
+                  <Edit3 size={14} />
+                </Button>
+              </div>
+            )}
+
             <div className="social-platform">
-              <span className={`platform-icon ${user.socialPlatform}`}>
-                {getSocialIcon(user.socialPlatform)}
+              <span className={`platform-icon ${user.provider}`}>
+                {getSocialIcon(user.provider)}
               </span>
-              <span>
-                {getSocialPlatformName(user.socialPlatform)}으로 로그인
-              </span>
+              <span>{getSocialPlatformName(user.provider)}으로 로그인</span>
+            </div>
+
+            <div style={{ fontSize: '0.875rem', color: 'var(--gray-600)', marginTop: '0.5rem' }}>
+              가입일: {formatDate(user.createdAt)}
             </div>
           </div>
           <div className="profile-actions">
@@ -415,8 +527,8 @@ const ProfilePage = () => {
               설정
             </Button>
             <Button variant="ghost">
-              <ExternalLink className="w-4 h-4 mr-2" />
-              연결 해제
+              <Camera className="w-4 h-4 mr-2" />
+              사진 변경
             </Button>
           </div>
         </ProfileHeader>
@@ -426,11 +538,15 @@ const ProfilePage = () => {
             <CardContent style={{ padding: "1.5rem" }}>
               <div className="info-header">
                 <span className="label">지갑 주소</span>
-                <button className="copy-btn" onClick={handleCopyWallet}>
-                  <Copy />
-                </button>
+                {user.walletAddress && (
+                  <button className="copy-btn" onClick={handleCopyWallet}>
+                    <Copy />
+                  </button>
+                )}
               </div>
-              <div className="info-value">{user.walletAddress}</div>
+              <div className="info-value">
+                {formatWalletAddress(user.walletAddress)}
+              </div>
             </CardContent>
           </InfoCard>
 
@@ -439,7 +555,7 @@ const ProfilePage = () => {
               <div className="info-header">
                 <span className="label">잔액</span>
               </div>
-              <div className="info-amount">{user.balance}</div>
+              <div className="info-amount">0 ETH</div>
             </CardContent>
           </InfoCard>
         </BlockchainInfo>
@@ -450,7 +566,7 @@ const ProfilePage = () => {
               <div className="stat-icon">
                 <Plus />
               </div>
-              <div className="stat-number">{user.stats.created}</div>
+              <div className="stat-number">{stats.created}</div>
               <div className="stat-label">생성한 NFT</div>
             </CardContent>
           </StatCard>
@@ -460,7 +576,7 @@ const ProfilePage = () => {
               <div className="stat-icon">
                 <Heart />
               </div>
-              <div className="stat-number">{user.stats.collected}</div>
+              <div className="stat-number">{stats.collected}</div>
               <div className="stat-label">수집한 NFT</div>
             </CardContent>
           </StatCard>
@@ -470,7 +586,7 @@ const ProfilePage = () => {
               <div className="stat-icon">
                 <TrendingUp />
               </div>
-              <div className="stat-number">{user.stats.sold}</div>
+              <div className="stat-number">{stats.sold}</div>
               <div className="stat-label">판매한 NFT</div>
             </CardContent>
           </StatCard>
@@ -480,7 +596,7 @@ const ProfilePage = () => {
               <div className="stat-icon">
                 <Eye />
               </div>
-              <div className="stat-number">{user.stats.earnings}</div>
+              <div className="stat-number">{stats.earnings}</div>
               <div className="stat-label">총 수익</div>
             </CardContent>
           </StatCard>
@@ -536,7 +652,7 @@ const ProfilePage = () => {
               </div>
               <h3>아직 생성한 NFT가 없습니다</h3>
               <p>첫 번째 음성 NFT를 만들어보세요!</p>
-              <Button>NFT 생성하기</Button>
+              <Button as="a" href="/create">NFT 생성하기</Button>
             </EmptyState>
           )}
 
@@ -547,7 +663,7 @@ const ProfilePage = () => {
               </div>
               <h3>아직 수집한 NFT가 없습니다</h3>
               <p>마켓플레이스에서 멋진 음성 NFT를 찾아보세요!</p>
-              <Button>마켓플레이스 둘러보기</Button>
+              <Button as="a" href="/marketplace">마켓플레이스 둘러보기</Button>
             </EmptyState>
           )}
 

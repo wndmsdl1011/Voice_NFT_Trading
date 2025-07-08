@@ -41,16 +41,24 @@ export const AppProvider = ({ children }) => {
     const initializeAuth = async () => {
       if (isAuthenticated()) {
         try {
-          const currentUser = getCurrentUser();
-          if (currentUser) {
-            // 서버에서 최신 사용자 정보 가져오기
-            const userProfile = await apiService.auth.getProfile();
-            setUser(userProfile);
+          // 서버에서 최신 사용자 정보 가져오기
+          const userProfile = await apiService.auth.getProfile();
+          console.log("AppContext - 사용자 프로필 로드:", userProfile);
+          
+          // 응답 구조에 따라 사용자 정보 설정
+          if (userProfile && userProfile.user) {
+            setUser(userProfile.user);
+          } else if (userProfile && userProfile.success && userProfile.user) {
+            setUser(userProfile.user);
+          } else {
+            console.warn("사용자 정보 구조가 예상과 다름:", userProfile);
+            setUser(userProfile); // fallback
           }
         } catch (error) {
           console.error("사용자 정보 로드 실패:", error);
           // 토큰이 유효하지 않은 경우 제거
           apiService.removeToken();
+          setUser(null);
         }
       }
       setIsInitialized(true);

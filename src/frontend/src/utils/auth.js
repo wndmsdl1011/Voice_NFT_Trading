@@ -2,14 +2,46 @@ import apiService from "../services/api";
 
 // URL에서 토큰 추출
 export const getTokenFromUrl = () => {
-  const urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get("token");
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get("token");
+  console.log("[getTokenFromUrl] 추출된 token 값:", token, typeof token);
+  return token;
 };
 
 // URL에서 에러 추출
 export const getErrorFromUrl = () => {
   const urlParams = new URLSearchParams(window.location.search);
   return urlParams.get("error");
+};
+
+// 쿠키에서 토큰 추출
+export const getTokenFromCookie = (cookieName = "token") => {
+  try {
+    const cookies = document.cookie.split(";");
+    for (let cookie of cookies) {
+      const [name, value] = cookie.trim().split("=");
+      if (name === cookieName) {
+        return decodeURIComponent(value);
+      }
+    }
+    return null;
+  } catch (error) {
+    console.error("쿠키에서 토큰 추출 실패:", error);
+    return null;
+  }
+};
+
+// URL 또는 쿠키에서 토큰 추출 (fallback 로직)
+export const getTokenFromUrlOrCookie = () => {
+  // 1. URL 파라미터에서 먼저 확인
+  const urlToken = getTokenFromUrl();
+  if (urlToken) {
+    return urlToken;
+  }
+
+  // 2. 쿠키에서 확인 (fallback)
+  const cookieToken = getTokenFromCookie();
+  return cookieToken;
 };
 
 // JWT 토큰 디코딩 (페이로드만)
