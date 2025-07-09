@@ -1,6 +1,6 @@
 // src/backend/node/voice_nft/routes/voice_nft.routes.js
-const express = require('express');
-const voiceNFTController = require('../controllers/voice_nft.controller'); // 컨트롤러 파일 경로
+const express = require("express");
+const voiceNFTController = require("../controllers/voice_nft.controller"); // 컨트롤러 파일 경로
 const router = express.Router();
 
 /**
@@ -56,6 +56,44 @@ const router = express.Router();
  *       500:
  *         description: NFT 검색/조회 실패
  */
-router.get('/', voiceNFTController.getNFTs);
+
+router.get("/", voiceNFTController.getNFTs);
+
+/**
+ * @swagger
+ * /api/voice-nfts:
+ *   post:
+ *     summary: 새로운 Voice NFT 생성
+ *     tags:
+ *       - VoiceNFT
+ *     description: 새로운 Voice NFT를 블록체인에 민팅하고 DB에 저장합니다.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: string
+ *               nickname:
+ *                 type: string
+ *               audioUrl:
+ *                 type: string
+ *               title:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               tags:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *     responses:
+ *       201:
+ *         description: 생성 성공
+ *       500:
+ *         description: 생성 실패
+ */
+router.post("/", voiceNFTController.createNFT);
 
 module.exports = router;
