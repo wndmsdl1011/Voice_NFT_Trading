@@ -3,8 +3,22 @@ const ttsService = require("../services/tts.service");
 // 음성 파일 업로드 및 학습
 exports.uploadVoice = async (req, res) => {
   try {
-    const userId = req.user?.id || req.body.userId; // 인증된 사용자 ID
+    // FormData에서 user_id 추출
+    const userId = req.body.user_id || req.user?.id;
     const audioFile = req.file;
+
+    console.log("받은 요청 데이터:", {
+      userId,
+      file: audioFile
+        ? {
+            originalname: audioFile.originalname,
+            mimetype: audioFile.mimetype,
+            size: audioFile.size,
+          }
+        : null,
+      body: req.body,
+      headers: req.headers,
+    });
 
     if (!audioFile) {
       return res.status(400).json({

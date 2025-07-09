@@ -11,11 +11,11 @@ import {
   getTokenFromUrlOrCookie,
   cleanUrl,
 } from "../../utils/auth";
-import { useAppContext } from "../../contexts/AppContext";
+import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../../hooks/useToast";
 import apiService from "../../services/api";
-import Web3 from 'web3';
-import MyAudioNFT from '../../contracts/MyAudioNFT.json';
+import Web3 from "web3";
+import MyAudioNFT from "../../contracts/MyAudioNFT.json";
 const contractABI = MyAudioNFT.abi;
 const contractAddress = process.env.REACT_APP_CONTRACT_ADDRESS;
 const PageContainer = styled.div`
@@ -126,12 +126,12 @@ const LoadingIcon = styled(Loader)`
 
 function CompleteProfilePage() {
   const navigate = useNavigate();
-  const { setUser } = useAppContext();
+  const { login } = useAuth();
   const { showSuccess, showError } = useToast();
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [onboardingToken, setOnboardingToken] = useState(null);
-  const [account, setAccount] = useState('');
+  const [account, setAccount] = useState("");
   const [web3, setWeb3] = useState(null);
   const [contract, setContract] = useState(null);
   useEffect(() => {
@@ -177,7 +177,9 @@ function CompleteProfilePage() {
 
     try {
       // 🦊 MetaMask 연결 요청
-      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      const accounts = await window.ethereum.request({
+        method: "eth_requestAccounts",
+      });
       const walletAddress = accounts?.[0];
 
       if (!walletAddress) {
@@ -188,7 +190,10 @@ function CompleteProfilePage() {
 
       // ✅ web3 인스턴스 및 컨트랙트 연결 (선택)
       const web3Instance = new Web3(window.ethereum);
-      const contractInstance = new web3Instance.eth.Contract(contractABI, contractAddress);
+      const contractInstance = new web3Instance.eth.Contract(
+        contractABI,
+        contractAddress
+      );
 
       // 상태 저장
       setWeb3(web3Instance);
@@ -196,7 +201,10 @@ function CompleteProfilePage() {
       setContract(contractInstance);
 
       // ✅ API 요청
-      console.log("📡 completeKakao API 요청:", { onboardingToken, walletAddress });
+      console.log("📡 completeKakao API 요청:", {
+        onboardingToken,
+        walletAddress,
+      });
 
       const response = await apiService.auth.completeKakao(onboardingToken, {
         walletAddress,
@@ -210,17 +218,22 @@ function CompleteProfilePage() {
       }
 
       if (response.success === false) {
-        const message = response.error || response.message || "회원가입 중 오류가 발생했습니다.";
+        const message =
+          response.error ||
+          response.message ||
+          "회원가입 중 오류가 발생했습니다.";
         throw new Error(message);
       }
 
       // 성공 응답 처리 - success가 true이거나 undefined인 경우 성공으로 간주
       if (response.token) {
-        apiService.setToken(response.token);
-      }
-
-      if (response.user) {
-        setUser(response.user);
+        // useAuth 훅의 login 메서드 사용 (토큰 저장 및 사용자 정보 설정 포함)
+        await login(response.token);
+      } else if (response.user) {
+        // 토큰 없이 사용자 정보만 있는 경우 (이미 로그인된 상태)
+        console.warn(
+          "토큰 없이 사용자 정보만 받음 - 이미 로그인된 상태일 수 있음"
+        );
       }
 
       showSuccess("회원가입이 완료되었습니다!");
@@ -228,13 +241,13 @@ function CompleteProfilePage() {
     } catch (error) {
       console.error("❌ Profile completion error:", error);
       let message = "회원가입 중 오류가 발생했습니다.";
-      
+
       try {
         if (error?.code === 4001) {
           message = "MetaMask 연결이 거부되었습니다. 다시 시도해주세요.";
-        } else if (typeof error === 'string') {
+        } else if (typeof error === "string") {
           message = error;
-        } else if (error && typeof error === 'object' && error !== null) {
+        } else if (error && typeof error === "object" && error !== null) {
           if (error.message) {
             message = error.message;
           } else if (error.error) {
@@ -252,15 +265,12 @@ function CompleteProfilePage() {
         console.error("에러 메시지 처리 실패:", msgError);
         message = "알 수 없는 오류가 발생했습니다.";
       }
-      
+
       showError(message);
     } finally {
       setIsLoading(false);
     }
   };
-
-
-
 
   return (
     <PageContainer>
@@ -269,7 +279,6 @@ function CompleteProfilePage() {
           <Title>프로필 완성</Title>
           <Description>
             MetaMask와 연결하기 위해 버튼을 클릭해주세요
-
           </Description>
         </Header>
 

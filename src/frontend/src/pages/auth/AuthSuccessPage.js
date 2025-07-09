@@ -8,9 +8,8 @@ import {
   getTokenFromUrlOrCookie,
   cleanUrl,
 } from "../../utils/auth";
-import { useAppContext } from "../../contexts/AppContext";
+import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../../hooks/useToast";
-import apiService from "../../services/api";
 
 const PageContainer = styled.div`
   min-height: 100vh;
@@ -85,7 +84,7 @@ const Spinner = styled(Loader)`
 
 function AuthSuccessPage() {
   const navigate = useNavigate();
-  const { setUser } = useAppContext();
+  const { login } = useAuth();
   const { showSuccess, showError } = useToast();
   const ref = useRef(null);
 
@@ -113,38 +112,9 @@ function AuthSuccessPage() {
       }
 
       try {
-        // 토큰 저장
-        apiService.setToken(token);
+        // useAuth 훅의 login 메서드 사용 (토큰 저장 및 사용자 정보 설정 포함)
+        await login(token);
 
-        // 사용자 정보 가져오기
-        console.log("사용자 프로필 요청 중...");
-        const userProfile = await apiService.auth.getProfile();
-        console.log("userProfile 응답:", userProfile);
-
-        // API 응답 구조 검증
-        if (!userProfile) {
-          throw new Error("서버에서 응답을 받지 못했습니다.");
-        }
-
-        // 성공/실패 상태 체크 - success 필드가 명시적으로 false인 경우만 실패로 처리
-        if (userProfile.success === false) {
-          throw new Error(userProfile.error || userProfile.message || "프로필 조회에 실패했습니다.");
-        }
-
-        // 사용자 데이터 검증 (다양한 응답 구조 지원)
-        const userData = userProfile.user || userProfile.data || userProfile;
-        
-        if (!userData || (typeof userData !== 'object') || Array.isArray(userData)) {
-          throw new Error("사용자 정보가 올바르지 않습니다.");
-        }
-
-        // 필수 사용자 정보 체크
-        if (!userData._id && !userData.id && !userData.kakaoId) {
-          throw new Error("사용자 식별 정보가 없습니다.");
-        }
-
-        // 사용자 정보 설정
-        setUser(userData);
         showSuccess("로그인이 완료되었습니다!");
 
         // URL 정리
@@ -158,13 +128,12 @@ function AuthSuccessPage() {
         } else {
           navigate("/dashboard");
         }
-
       } catch (error) {
         console.error("Authentication error:", error);
-        
+
         // 에러 메시지 추출 - 안전한 접근
         let errorMessage = "사용자 정보를 가져오는데 실패했습니다.";
-        
+
         if (error) {
           if (typeof error === "string") {
             errorMessage = error;
@@ -185,13 +154,12 @@ function AuthSuccessPage() {
         }
 
         showError(errorMessage);
-        apiService.removeToken();
         navigate("/login");
       }
     };
 
     handleAuth();
-  }, [navigate, setUser, showSuccess, showError]);
+  }, [navigate, login, showSuccess, showError]);
 
   return (
     <PageContainer>

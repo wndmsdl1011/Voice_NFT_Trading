@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import { Search, Play, Heart, Filter } from "lucide-react";
+import { Search, Play, Heart, Filter, Loader } from "lucide-react";
 import Button from "../../components/ui/Button";
 import {
   Card,
@@ -11,6 +11,8 @@ import {
   CardTitle,
 } from "../../components/ui/Card";
 import Input from "../../components/ui/Input";
+import { useToast } from "../../hooks/useToast";
+import apiService from "../../services/api";
 
 const PageContainer = styled.div`
   min-height: 100vh;
@@ -273,99 +275,171 @@ const NFTInfo = styled.div`
 const MarketplacePage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("latest");
+  const [nfts, setNfts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filteredNfts, setFilteredNfts] = useState([]);
+  const { showError } = useToast();
+  const errorShownRef = useRef(false); // 추가
 
-  const nfts = [
-    {
-      id: "1",
-      title: "신비로운 속삭임 #001",
-      creator: "@음성아티스트",
-      price: "2.5 ETH",
-      image: "/placeholder.svg?height=300&width=300",
-      liked: false,
-    },
-    {
-      id: "2",
-      title: "즐거운 멜로디 #042",
-      creator: "@사운드메이커",
-      price: "1.8 ETH",
-      image: "/placeholder.svg?height=300&width=300",
-      liked: true,
-    },
-    {
-      id: "3",
-      title: "깊은 울림 #007",
-      creator: "@음성프로",
-      price: "3.2 ETH",
-      image: "/placeholder.svg?height=300&width=300",
-      liked: false,
-    },
-    {
-      id: "4",
-      title: "부드러운 바람 #023",
-      creator: "@오디오아트",
-      price: "1.5 ETH",
-      image: "/placeholder.svg?height=300&width=300",
-      liked: false,
-    },
-    {
-      id: "5",
-      title: "전기적 에너지 #099",
-      creator: "@음성웨이브",
-      price: "4.1 ETH",
-      image: "/placeholder.svg?height=300&width=300",
-      liked: true,
-    },
-    {
-      id: "6",
-      title: "신비한 메아리 #156",
-      creator: "@사운드세이지",
-      price: "2.9 ETH",
-      image: "/placeholder.svg?height=300&width=300",
-      liked: false,
-    },
-  ];
+  // NFT 목록 로딩
+  useEffect(() => {
+    const loadNFTs = async () => {
+      try {
+        setLoading(true);
+        errorShownRef.current = false; // 새 요청마다 초기화
+        console.log("NFT 목록 로딩 중...");
 
-  const renderNFTGrid = (nftList) => (
-    <NFTGrid>
-      {nftList.map((nft) => (
-        <NFTCard key={nft.id}>
-          <NFTImageContainer>
-            <div className="bg-overlay"></div>
-            <div className="play-button">
-              <div className="play-circle">
-                <Play />
-              </div>
-            </div>
-            <LikeButton variant="ghost" size="sm" $liked={nft.liked}>
-              <Heart />
-            </LikeButton>
-          </NFTImageContainer>
-          <CardHeader style={{ paddingBottom: "0.5rem" }}>
-            <NFTInfo>
-              <div className="nft-header">
-                <div className="nft-details">
-                  <CardTitle className="nft-title">{nft.title}</CardTitle>
-                  <CardDescription className="nft-creator">
-                    {nft.creator}
-                  </CardDescription>
+        const response = await apiService.nft.getList({
+          sortBy: sortBy,
+          search: searchQuery.trim() || undefined,
+        });
+
+        console.log("NFT 목록 응답:", response);
+
+        // API 응답 구조에 따라 데이터 추출
+        const nftList = response.nfts || response.data || response || [];
+        setNfts(Array.isArray(nftList) ? nftList : []);
+      } catch (error) {
+        console.error("NFT 목록 로딩 실패:", error);
+        if (!errorShownRef.current) {
+          showError("NFT 목록을 불러오는데 실패했습니다.");
+          errorShownRef.current = true;
+        }
+
+        // 실패 시 빈 배열로 설정
+        setNfts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadNFTs();
+  }, [sortBy, showError]);
+
+  // 검색 및 필터링
+  useEffect(() => {
+    let filtered = [...nfts];
+
+    // 검색어 필터링
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (nft) =>
+          nft.title?.toLowerCase().includes(query) ||
+          nft.description?.toLowerCase().includes(query) ||
+          nft.creator?.toLowerCase().includes(query) ||
+          nft.tags?.some((tag) => tag.toLowerCase().includes(query))
+      );
+    }
+
+    setFilteredNfts(filtered);
+  }, [nfts, searchQuery]);
+
+  const renderNFTGrid = (nftList) => {
+    if (loading) {
+      return (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            minHeight: "200px",
+            flexDirection: "column",
+            gap: "1rem",
+          }}
+        >
+          <Loader
+            size={32}
+            className="animate-spin"
+            style={{ color: "var(--emerald-500)" }}
+          />
+          <p style={{ color: "var(--gray-600)" }}>NFT 목록을 불러오는 중...</p>
+        </div>
+      );
+    }
+
+    if (!nftList || nftList.length === 0) {
+      return (
+        <div
+          style={{
+            textAlign: "center",
+            padding: "3rem",
+            color: "var(--gray-600)",
+          }}
+        >
+          <p style={{ fontSize: "1.125rem", marginBottom: "0.5rem" }}>
+            {searchQuery ? "검색 결과가 없습니다." : "NFT가 아직 없습니다."}
+          </p>
+          <p style={{ fontSize: "0.875rem" }}>
+            {searchQuery
+              ? "다른 검색어를 시도해보세요."
+              : "첫 번째 NFT를 만들어보세요!"}
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <NFTGrid>
+        {nftList.map((nft) => (
+          <NFTCard key={nft.tokenId || nft.id}>
+            <NFTImageContainer>
+              {nft.imageUrl && (
+                <img
+                  src={nft.imageUrl}
+                  alt={nft.title}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    position: "absolute",
+                    inset: 0,
+                  }}
+                />
+              )}
+              <div className="bg-overlay"></div>
+              <div className="play-button">
+                <div className="play-circle">
+                  <Play />
                 </div>
               </div>
-            </NFTInfo>
-          </CardHeader>
-          <CardContent>
-            <NFTInfo>
-              <div className="nft-footer">
-                <span className="nft-price">{nft.price}</span>
-                <Button size="sm" as={Link} to={`/nft/${nft.id}`}>
-                  자세히 보기
-                </Button>
-              </div>
-            </NFTInfo>
-          </CardContent>
-        </NFTCard>
-      ))}
-    </NFTGrid>
-  );
+              <LikeButton variant="ghost" size="sm" $liked={nft.liked || false}>
+                <Heart />
+              </LikeButton>
+            </NFTImageContainer>
+            <CardHeader style={{ paddingBottom: "0.5rem" }}>
+              <NFTInfo>
+                <div className="nft-header">
+                  <div className="nft-details">
+                    <CardTitle className="nft-title">{nft.title}</CardTitle>
+                    <CardDescription className="nft-creator">
+                      {nft.creator || `@${nft.walletAddress?.slice(0, 8)}...`}
+                    </CardDescription>
+                  </div>
+                </div>
+              </NFTInfo>
+            </CardHeader>
+            <CardContent>
+              <NFTInfo>
+                <div className="nft-footer">
+                  <span className="nft-price">
+                    {nft.price ? `${nft.price} ETH` : "Free"}
+                  </span>
+                  <Button
+                    size="sm"
+                    as={Link}
+                    to={`/nft/${nft.tokenId || nft.id}`}
+                  >
+                    자세히 보기
+                  </Button>
+                </div>
+              </NFTInfo>
+            </CardContent>
+          </NFTCard>
+        ))}
+      </NFTGrid>
+    );
+  };
 
   return (
     <PageContainer>
@@ -432,8 +506,8 @@ const MarketplacePage = () => {
           </div>
 
           <div className="tabs-content">
-            {sortBy === "latest" && renderNFTGrid(nfts)}
-            {sortBy === "popular" && renderNFTGrid([...nfts].reverse())}
+            {sortBy === "latest" && renderNFTGrid(filteredNfts)}
+            {sortBy === "popular" && renderNFTGrid([...filteredNfts].reverse())}
           </div>
         </TabsSection>
       </Container>

@@ -1,18 +1,95 @@
 const axios = require("axios");
 const FormData = require("form-data");
 const fs = require("fs");
+const path = require("path");
+const ffmpeg = require("fluent-ffmpeg");
 
 const FLASK_SERVER_URL = process.env.FLASK_TTS_URL || "http://localhost:5000";
 
 class TTSService {
+  // M4A 파일을 WAV로 변환
+  async convertToWav(inputPath, outputPath) {
+    return new Promise((resolve, reject) => {
+      console.log(`FFmpeg 변환 시작: ${inputPath} -> ${outputPath}`);
+
+      ffmpeg(inputPath)
+        .toFormat("wav")
+        .audioChannels(1) // 모노 채널로 변환
+        .audioFrequency(16000) // 16kHz 샘플링 레이트
+        .on("start", (commandLine) => {
+          console.log("FFmpeg 명령:", commandLine);
+        })
+        .on("end", () => {
+          console.log(`FFmpeg 변환 완료: ${outputPath}`);
+          resolve(outputPath);
+        })
+        .on("error", (err) => {
+          console.error("FFmpeg 오류:", err);
+          reject(err);
+        })
+        .save(outputPath);
+    });
+  }
+
   // Flask 서버로 음성 파일 업로드
   async uploadVoiceToFlask(userId, audioFile) {
+    let finalFilePath = audioFile.path;
+    let finalFilename = audioFile.originalname;
+    let finalMimetype = audioFile.mimetype;
+
     try {
+      // M4A 파일인 경우 WAV로 변환
+      if (
+        audioFile.mimetype === "audio/x-m4a" ||
+        audioFile.originalname.toLowerCase().endsWith(".m4a")
+      ) {
+        // 안전한 파일명 생성 (특수문자, 공백 제거)
+        const timestamp = Date.now();
+        const safeFilename = `${userId}_${timestamp}`;
+        const uploadDir = path.dirname(audioFile.path);
+        const cleanPath = path.join(uploadDir, `${safeFilename}.m4a`);
+        const wavPath = path.join(uploadDir, `${safeFilename}.wav`);
+
+        console.log(
+          `M4A 파일 변환 시작: ${audioFile.originalname} -> ${safeFilename}.wav`
+        );
+
+        try {
+          // 원본 파일 경로에도 공백이 있을 수 있으므로 cleanPath 사용
+          if (cleanPath !== audioFile.path) {
+            // 파일명에 공백이 있는 경우 새로운 경로로 파일 복사
+            fs.copyFileSync(audioFile.path, cleanPath);
+          }
+
+          await this.convertToWav(cleanPath, wavPath);
+
+          // 원본 M4A 파일들 삭제
+          if (fs.existsSync(audioFile.path)) {
+            fs.unlinkSync(audioFile.path);
+          }
+          if (cleanPath !== audioFile.path && fs.existsSync(cleanPath)) {
+            fs.unlinkSync(cleanPath);
+          }
+
+          // 변환된 파일 정보 업데이트
+          finalFilePath = wavPath;
+          finalFilename = audioFile.originalname.replace(/\.m4a$/i, ".wav");
+          finalMimetype = "audio/wav";
+
+          console.log(`M4A 변환 완료: ${finalFilename}`);
+        } catch (convertError) {
+          console.error("M4A 변환 실패:", convertError);
+          throw new Error(
+            "M4A 파일 변환에 실패했습니다. FFmpeg이 설치되어 있는지 확인해주세요."
+          );
+        }
+      }
+
       const formData = new FormData();
       formData.append("user_id", userId);
-      formData.append("prompt_speech", fs.createReadStream(audioFile.path), {
-        filename: audioFile.originalname,
-        contentType: audioFile.mimetype,
+      formData.append("prompt_speech", fs.createReadStream(finalFilePath), {
+        filename: finalFilename,
+        contentType: finalMimetype,
       });
 
       const response = await axios.post(
@@ -27,12 +104,17 @@ class TTSService {
       );
 
       // 업로드된 파일 삭제
-      fs.unlinkSync(audioFile.path);
+      if (fs.existsSync(finalFilePath)) {
+        fs.unlinkSync(finalFilePath);
+      }
 
       return response.data;
     } catch (error) {
       // 업로드 실패 시에도 파일 삭제
-      if (fs.existsSync(audioFile.path)) {
+      if (fs.existsSync(finalFilePath)) {
+        fs.unlinkSync(finalFilePath);
+      }
+      if (finalFilePath !== audioFile.path && fs.existsSync(audioFile.path)) {
         fs.unlinkSync(audioFile.path);
       }
 
@@ -40,10 +122,13 @@ class TTSService {
         throw new Error(error.response.data.error || "Flask 서버 오류");
       } else if (error.code === "ECONNREFUSED") {
         throw new Error(
-          "TTS 서버에 연결할 수 없습니다. 서버가 실행 중인지 확인해주세요."
+          "TTS 서버(Flask)에 연결할 수 없습니다. Flask 서버를 시작해주세요: cd src/backend/Spark-TTS-main && python flask_server.py"
         );
       } else {
-        throw new Error("음성 파일 업로드 중 오류가 발생했습니다.");
+        console.error("TTS 서비스 상세 오류:", error);
+        throw new Error(
+          `음성 파일 업로드 중 오류가 발생했습니다: ${error.message}`
+        );
       }
     }
   }
