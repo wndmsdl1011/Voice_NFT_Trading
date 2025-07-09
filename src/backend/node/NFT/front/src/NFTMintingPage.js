@@ -3,6 +3,7 @@ import Web3 from 'web3';
 import axios from 'axios';
 import './NFTMintingPage.css';
 import MyAudioNFT from './contracts/MyAudioNFT.json';
+import NFTAudioFetcher from './components/NFTAudioFetcher';
 
 const networkId = process.env.REACT_APP_NETWORK_ID || '1337';
 const contractAddress = MyAudioNFT.networks?.[networkId]?.address;
@@ -146,6 +147,7 @@ const NFTMintingPage = () => {
       </div>
 
       <p>{status}</p>
+      <NFTAudioFetcher />
     </div>
   );
 };

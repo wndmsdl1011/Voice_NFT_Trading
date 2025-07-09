@@ -5,12 +5,12 @@ const mongoose = require('./oauth/utils/db');
 
 const authRoutes = require('./oauth/routes/auth.routes');
 const nftRoutes = require('./NFT/routes/nft.routes');
-const userRoutes = require('./Oauth/routes/user.routes');
+const userRoutes = require('./oauth/routes/user.routes');
 const cors = require('cors');
 
 // Swagger 설정
 const swaggerUi = require('swagger-ui-express');
-const swaggerSpec = require('./Oauth/utils/swagger');
+const swaggerSpec = require('./oauth/utils/swagger');
 
 const app = express();
 app.use(cors({
