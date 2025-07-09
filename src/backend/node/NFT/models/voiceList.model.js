@@ -1,7 +1,7 @@
 // src/backend/node/voice_nft/models/voice_nft.model.js
 const mongoose = require('mongoose');
 
-const VoiceNFTSchema = new mongoose.Schema({
+const VoiceListSchema = new mongoose.Schema({
     tokenId: {
         type: String, // 블록체인에서 받는 토큰 ID
         required: true,
@@ -40,8 +40,8 @@ const VoiceNFTSchema = new mongoose.Schema({
 });
 
 // 제목 및 설명 필드에 대한 텍스트 인덱스 추가 (검색 기능에 활용)
-VoiceNFTSchema.index({ title: 'text', description: 'text' });
+VoiceListSchema.index({ title: 'text', description: 'text' });
 
-const VoiceNFT = mongoose.model('VoiceNFT', VoiceNFTSchema);
+const VoiceNFT = mongoose.model('VoiceNFT', VoiceListSchema);
 
 module.exports = VoiceNFT;
