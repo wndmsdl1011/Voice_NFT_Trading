@@ -289,10 +289,11 @@ const MarketplacePage = () => {
         errorShownRef.current = false; // 새 요청마다 초기화
         console.log("NFT 목록 로딩 중...");
 
-        const response = await apiService.nft.getList({
-          sortBy: sortBy,
-          search: searchQuery.trim() || undefined,
-        });
+        const params = { sortBy };
+        if (searchQuery.trim()) {
+          params.search = searchQuery.trim();
+        }
+        const response = await apiService.nft.getList(params);
 
         console.log("NFT 목록 응답:", response);
 

@@ -3,9 +3,9 @@ const express = require("express");
 const dotenv = require("dotenv");
 const mongoose = require("./oauth/utils/db");
 
-const authRoutes = require('./oauth/routes/auth.routes');
+const authRoutes = require('./Oauth/routes/auth.routes');
 const nftRoutes = require('./NFT/routes/nft.routes');
-const userRoutes = require('./oauth/routes/user.routes');
+const userRoutes = require('./Oauth/routes/user.routes');
 const voiceNftRoutes = require("./NFT/routes/nft.routes");
 const cors = require('cors');
 

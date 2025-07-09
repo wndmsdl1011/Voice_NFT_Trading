@@ -1,0 +1,26 @@
+# dependencies
+node_modules/
+package-lock.json
+
+# builds
+dist/
+build/
+*.log
+
+# TypeScript
+*.tsbuildinfo
+
+# source maps
+*.map
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# archives
+*.zipnode_modules/
+package-lock.json
+*.zip
