@@ -112,3 +112,15 @@ export const cleanUrl = () => {
   url.searchParams.delete("error");
   window.history.replaceState({}, document.title, url.toString());
 };
+
+// 로그인 확인 후 페이지 이동
+export const requireAuth = (navigate, targetPath = "/create") => {
+  if (!isAuthenticated()) {
+    // 현재 URL을 저장하여 로그인 후 돌아올 수 있도록 함
+    const currentPath = window.location.pathname + window.location.search;
+    localStorage.setItem("redirectAfterLogin", currentPath);
+    navigate("/login");
+    return false;
+  }
+  return true;
+};

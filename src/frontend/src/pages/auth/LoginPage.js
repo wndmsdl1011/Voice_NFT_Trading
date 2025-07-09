@@ -4,6 +4,7 @@ import { Sparkles } from "lucide-react";
 import Button from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { useToast } from "../../hooks/useToast";
+import { useAuth } from "../../hooks/useAuth";
 import { startSocialLogin } from "../../utils/auth";
 
 // 카카오톡 아이콘 컴포넌트
@@ -309,6 +310,18 @@ const FooterText = styled.p`
 function LoginPage() {
   const { showLoginSuccess, showLoginError, showLoading, dismissById } =
     useToast();
+  const { isAuthenticated, isLoading } = useAuth();
+
+  // 이미 로그인된 경우 리다이렉트 처리
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      // 로그인 후 이동할 페이지 확인
+      const redirectPath =
+        localStorage.getItem("redirectAfterLogin") || "/dashboard";
+      localStorage.removeItem("redirectAfterLogin");
+      window.location.href = redirectPath;
+    }
+  }, [isAuthenticated]);
 
   const handleSocialLogin = (platform) => {
     console.log(`${platform}으로 로그인 시도`);
@@ -331,6 +344,21 @@ function LoginPage() {
       console.error("소셜 로그인 오류:", error);
     }
   };
+
+  // 로딩 중이면 로딩 화면 표시
+  if (isLoading) {
+    return (
+      <PageContainer>
+        <Container>
+          <LoginCard>
+            <CardBody style={{ textAlign: "center", padding: "3rem" }}>
+              <div>로그인 상태를 확인하는 중...</div>
+            </CardBody>
+          </LoginCard>
+        </Container>
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer>

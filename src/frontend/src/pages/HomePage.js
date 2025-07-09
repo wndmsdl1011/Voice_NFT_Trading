@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import {
   Play,
@@ -19,6 +19,7 @@ import {
   CardTitle,
 } from "../components/ui/Card";
 import Badge from "../components/ui/Badge";
+import { requireAuth } from "../utils/auth";
 
 const PageContainer = styled.div`
   min-height: 100vh;
@@ -319,6 +320,22 @@ const SectionDescription = styled.p`
 `;
 
 const HomePage = () => {
+  const navigate = useNavigate();
+
+  const handleCreateClick = (e) => {
+    e.preventDefault();
+    if (requireAuth(navigate, "/create")) {
+      navigate("/create");
+    }
+  };
+
+  const handleProfileClick = (e) => {
+    e.preventDefault();
+    if (requireAuth(navigate, "/profile")) {
+      navigate("/profile");
+    }
+  };
+
   return (
     <PageContainer>
       {/* Hero Section */}
@@ -337,7 +354,7 @@ const HomePage = () => {
             세상에 하나뿐인 음성 NFT를 생성하고, 수집하고, 거래하세요. 당신의
             목소리를 디지털 자산으로 변환하고 모든 거래에서 로열티를 받으세요.
           </HeroDescription>
-          <Button size="lg" as={Link} to="/create">
+          <Button size="lg" as={Link} to="/create" onClick={handleCreateClick}>
             지금 시작하기
           </Button>
         </Container>
@@ -369,6 +386,7 @@ const HomePage = () => {
                   fullWidth
                   as={Link}
                   to="/create"
+                  onClick={handleCreateClick}
                   style={{
                     backgroundColor: "transparent",
                     borderColor: "var(--emerald-200)",
@@ -429,6 +447,7 @@ const HomePage = () => {
                   fullWidth
                   as={Link}
                   to="/profile"
+                  onClick={handleProfileClick}
                   style={{
                     backgroundColor: "transparent",
                     borderColor: "var(--cyan-200)",

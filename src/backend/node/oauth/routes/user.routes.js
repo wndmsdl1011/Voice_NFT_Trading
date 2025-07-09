@@ -6,7 +6,7 @@ const userController = require('../controllers/user.controller');
 /**
  * @swagger
  * /api/user/profile:
- *   get:
+ *   post:
  *     summary: 사용자 프로필 조회
  *     description: JWT 토큰으로 인증된 사용자의 정보를 반환합니다.
  *     tags:
@@ -32,6 +32,6 @@ const userController = require('../controllers/user.controller');
  *       500:
  *         description: 서버 에러
  */
-router.get('/profile', userController.getProfile);
+router.post('/profile', userController.getProfile);
 
 module.exports = router;

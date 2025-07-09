@@ -4,6 +4,7 @@ import styled from "styled-components";
 import { Menu, Wallet, User, LogOut } from "lucide-react";
 import Button from "../ui/Button";
 import { useAppContext } from "../../contexts/AppContext";
+import { requireAuth } from "../../utils/auth";
 
 const HeaderContainer = styled.header`
   border-bottom: 1px solid var(--teal-100);
@@ -217,9 +218,9 @@ const MobileNavLink = styled(Link)`
 `;
 
 const navigation = [
-  { name: "마켓플레이스", href: "/marketplace" },
-  { name: "NFT 생성", href: "/create" },
-  { name: "TTS 스튜디오", href: "/tts" },
+  { name: "마켓플레이스", href: "/marketplace", requiresAuth: false },
+  { name: "NFT 생성", href: "/create", requiresAuth: true },
+  { name: "TTS 스튜디오", href: "/tts", requiresAuth: true },
 ];
 
 const Header = () => {
@@ -243,6 +244,15 @@ const Header = () => {
     setShowUserMenu(false);
   };
 
+  const handleNavClick = (item, e) => {
+    if (item.requiresAuth) {
+      e.preventDefault();
+      if (requireAuth(navigate, item.href)) {
+        navigate(item.href);
+      }
+    }
+  };
+
   // 사용자 이름의 첫 글자 추출 (닉네임이나 이메일에서)
   const getUserInitial = () => {
     if (!user) return "사";
@@ -264,7 +274,11 @@ const Header = () => {
 
           <Nav>
             {navigation.map((item) => (
-              <NavLink key={item.name} to={item.href}>
+              <NavLink 
+                key={item.name} 
+                to={item.href}
+                onClick={(e) => handleNavClick(item, e)}
+              >
                 {item.name}
               </NavLink>
             ))}
@@ -341,7 +355,10 @@ const Header = () => {
             <MobileNavLink
               key={item.name}
               to={item.href}
-              onClick={() => setIsOpen(false)}
+              onClick={(e) => {
+                handleNavClick(item, e);
+                setIsOpen(false);
+              }}
             >
               {item.name}
             </MobileNavLink>

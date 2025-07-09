@@ -23,7 +23,7 @@ const options = {
                         _id: { type: 'string' },
                         provider: {
                             type: 'string',
-                            enum: ['kakao', 'naver', 'google'],
+                            enum: ['kakao', 'naver'],
                         },
                         nickname: { type: 'string' },
                         email: { type: 'string' },
@@ -38,6 +38,23 @@ const options = {
                         },
                     },
                 },
+                VoiceNFT: {
+                    type: 'object',
+                    properties: {
+                        tokenId: { type: 'string' },
+                        title: { type: 'string' },
+                        description: { type: 'string' },
+                        tags: {
+                            type: 'array',
+                            items: { type: 'string' }
+                        },
+                        price: { type: 'number', format: 'float' },
+                        mint_date: { type: 'string', format: 'date-time' },
+                        likes_count: { type: 'integer' },
+                        createdAt: { type: 'string', format: 'date-time' },
+                        updatedAt: { type: 'string', format: 'date-time' },
+                    }
+                }
             },
         },
         security: [{ bearerAuth: [] }],
@@ -46,6 +63,9 @@ const options = {
         path.join(__dirname, '../routes/*.js'),
         path.join(__dirname, '../controllers/*.js'),
         path.join(__dirname, '../oauth/routes/*.js'),
+        path.join(__dirname, '../voice_nft/controllers/*.js'), // ✅ 수정
+        path.join(__dirname, '../voice_nft/routes/*.js'),      // ✅ 수정
+        // ❌ voice-nft → ✅ voice_nft
     ],
 };
 
