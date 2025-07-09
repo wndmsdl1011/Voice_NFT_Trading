@@ -1,4 +1,6 @@
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
+const TTS_API_BASE_URL =
+  process.env.REACT_APP_TTS_API_URL || "http://localhost:5000";
 
 class ApiService {
   constructor() {
@@ -22,7 +24,7 @@ class ApiService {
 
   // 기본 fetch 래퍼
   async request(endpoint, options = {}) {
-    const url = `${this.baseURL}${endpoint}`;
+    const url = `${options.baseURL || this.baseURL}${endpoint}`;
     const token = this.getToken();
 
     const config = {
@@ -105,10 +107,10 @@ class ApiService {
       }),
 
     // ✅ 사용자 프로필 조회
-    getProfile: () => this.get("/api/auth/profile"),
+    getProfile: () => this.post("/api/user/profile"),
 
     // 프로필 업데이트 (bio 수정)
-    updateProfile: (profileData) => this.put("/api/auth/profile", profileData),
+    updateProfile: (profileData) => this.put("/api/user/profile", profileData),
 
     // 로그아웃
     logout: () => {
@@ -199,31 +201,59 @@ class ApiService {
     // 음성 프롬프트 업로드
     uploadVoice: async (userId, audioFile) => {
       const formData = new FormData();
-      formData.append("user_id", userId);
-      formData.append("audio", audioFile);
+      formData.append("user_id", userId); // ✅ match Flask backend field name
+      formData.append("prompt_speech", audioFile); // ✅ match Flask backend field name
 
-      return this.request("/api/tts/upload-voice", {
-        method: "POST",
-        body: formData,
-        headers: {
-          Authorization: `Bearer ${this.getToken()}`,
-        },
-      });
+      try {
+        return await this.request("/upload-prompt", {
+          method: "POST",
+          body: formData,
+          baseURL: TTS_API_BASE_URL,
+          headers: {}, // Ensures no Content-Type is forced
+        });
+      } catch (error) {
+        if (
+          error.message.includes("이미 등록된 프롬프트") ||
+          error.message.includes("프롬프트 음성이 등록되어 있습니다")
+        ) {
+          console.warn(
+            "⚠️ 이미 등록된 프롬프트입니다. 다음 단계로 진행할 수 있습니다."
+          );
+          return { success: true, alreadyRegistered: true };
+        }
+        throw error;
+      }
     },
 
     // TTS 음성 생성
     generateSpeech: async (userId, text) => {
       const formData = new FormData();
-      formData.append("userId", userId);
+      formData.append("user_id", userId); // ✅ match Flask backend field name
       formData.append("text", text);
 
-      return this.request("/api/tts/generate-speech", {
+      return this.request("/voice-clone", {
         method: "POST",
         body: formData,
-        headers: {
-          Authorization: `Bearer ${this.getToken()}`,
-        },
+        baseURL: TTS_API_BASE_URL,
       });
+    },
+
+    // 실제로 오디오 Blob을 반환
+    generateSpeechBlob: async (userId, text) => {
+      const formData = new FormData();
+      formData.append("user_id", userId);
+      formData.append("text", text);
+
+      const response = await fetch(`${TTS_API_BASE_URL}/voice-clone`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("음성 생성 실패");
+      }
+
+      return await response.blob();
     },
 
     // 사용자 음성 모델 상태 확인

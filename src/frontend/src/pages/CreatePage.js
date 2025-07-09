@@ -478,7 +478,17 @@ function CreatePage() {
         });
       }, 300);
 
-      await showPromise(uploadPromise, {
+      // Handle alreadyRegistered response
+      const response = await uploadPromise;
+      if (response?.alreadyRegistered) {
+        showSuccess("이미 음성이 등록되어 있습니다. 다음 단계로 이동합니다.");
+        setProcessingProgress(100);
+        setIsProcessing(false);
+        startTraining();
+        return;
+      }
+
+      await showPromise(Promise.resolve(response), {
         loading: "음성 파일을 업로드하고 처리하는 중입니다...",
         success: "음성 파일이 성공적으로 업로드되었습니다!",
         error: "음성 파일 업로드에 실패했습니다. 다시 시도해주세요.",
@@ -514,12 +524,38 @@ function CreatePage() {
     }, 500);
   };
 
-  const handlePlaySample = () => {
-    setIsPlaying(!isPlaying);
-    if (!isPlaying) {
-      setTimeout(() => {
+  const handlePlaySample = async () => {
+    if (isPlaying) return;
+    setIsPlaying(true);
+    showPromise(Promise.resolve(), {
+      loading: "AI 음성 생성 중...",
+      success: "",
+      error: "",
+    });
+
+    try {
+      const token = localStorage.getItem("authToken");
+      let userId = "temp_user";
+
+      if (token) {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        userId = payload.id || payload.kakaoId || payload._id || "temp_user";
+      }
+
+      const text = customText || sampleTexts[selectedSample];
+
+      // Use apiService.tts.generateSpeechBlob instead of direct fetch
+      const audioBlob = await apiService.tts.generateSpeechBlob(userId, text);
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audio = new Audio(audioUrl);
+      audio.play();
+
+      audio.onended = () => {
         setIsPlaying(false);
-      }, 3000);
+      };
+    } catch (error) {
+      console.error("음성 생성 오류:", error);
+      setIsPlaying(false);
     }
   };
 
@@ -809,14 +845,17 @@ function CreatePage() {
                     <div
                       style={{ textAlign: "center", marginBottom: "1.5rem" }}
                     >
-                      <PlayButton onClick={handlePlaySample}>
+                      <PlayButton
+                        onClick={handlePlaySample}
+                        disabled={isPlaying}
+                      >
                         {isPlaying ? (
                           <>
                             <Pause
                               size={24}
                               style={{ marginRight: "0.5rem" }}
                             />
-                            재생 중...
+                            생성 및 재생 중...
                           </>
                         ) : (
                           <>

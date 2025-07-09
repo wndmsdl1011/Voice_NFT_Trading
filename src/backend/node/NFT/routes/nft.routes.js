@@ -1,7 +1,7 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const nftController = require('../controllers/nft.controller');
-const voiceListController = require('../controllers/voiceList.controller');
+const nftController = require("../controllers/nft.controller");
+const voiceListController = require("../controllers/voiceList.controller");
 
 /**
  * @swagger
@@ -39,7 +39,9 @@ const voiceListController = require('../controllers/voiceList.controller');
  *                   type: string
  *                   example: "Error: ENOENT: no such file or directory, ..."
  */
-router.post('/mint', nftController.mintNFT);
+router.post("/mint", nftController.mintNFT);
+router.post("/save", saveNFT);
+router.get("/list", getNFTList);
 /**
  * @swagger
  * /api/nft/save:
@@ -97,7 +99,7 @@ router.post('/mint', nftController.mintNFT);
  *                   type: string
  *                   example: "SequelizeValidationError: title cannot be null"
  */
-router.post('/save', nftController.saveNFT);
+router.post("/save", nftController.saveNFT);
 
 /**
  * @swagger
@@ -152,7 +154,7 @@ router.post('/save', nftController.saveNFT);
  *       500:
  *         description: "NFT 검색/조회 실패"
  */
-router.get('/voiceList', voiceListController.getNFTs);
+router.get("/voiceList", voiceListController.getNFTs);
 
 // 반드시 export 해줘야 외부에서 사용 가능
 module.exports = router;

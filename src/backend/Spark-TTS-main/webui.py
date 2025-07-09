@@ -1,270 +1,98 @@
-# Copyright (c) 2025 SparkAudio
-#               2025 Xinsheng Wang (w.xinshawn@gmail.com)
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#   http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
+from flask import Flask, request, send_file, jsonify
+from transformers import AutoTokenizer
+from datetime import datetime
+from flask_cors import CORS
 import os
 import torch
 import soundfile as sf
-import logging
-import argparse
-import gradio as gr
 import platform
+from pydub import AudioSegment
+import tempfile
 
-from datetime import datetime
-from pathlib import Path
 from cli.SparkTTS import SparkTTS
 from sparktts.utils.token_parser import LEVELS_MAP_UI
 
+app = Flask(__name__)
+CORS(app)
 
-def initialize_model(model_dir="pretrained_models/Spark-TTS-0.5B", device=0):
-    """Load the model once at the beginning."""
-    logging.info(f"Loading model from: {model_dir}")
+if platform.system() == "Darwin":
+    device = torch.device("mps:0")
+elif torch.cuda.is_available():
+    device = torch.device("cuda:0")
+else:
+    device = torch.device("cpu")
 
-    # Determine appropriate device based on platform and availability
-    if platform.system() == "Darwin":
-        # macOS with MPS support (Apple Silicon)
-        device = torch.device(f"mps:{device}")
-        logging.info(f"Using MPS device: {device}")
-    elif torch.cuda.is_available():
-        # System with CUDA support
-        device = torch.device(f"cuda:{device}")
-        logging.info(f"Using CUDA device: {device}")
-    else:
-        # Fall back to CPU
-        device = torch.device("cpu")
-        logging.info("GPU acceleration not available, using CPU")
+print(f"디바이스 설정 완료: {device}")
 
-    model = SparkTTS(Path(model_dir), device)
-    return model
+model_dir = "pretrained_models/Spark-TTS-0.5B"
+print("SparkTTS 모델 초기화 시작...")
+try:
+    model = SparkTTS(model_dir, device)
+    print("SparkTTS 모델 초기화 성공")
+except Exception as e:
+    print(f"SparkTTS 모델 초기화 실패: {e}")
+    exit(1)
 
+SAVE_DIR = "example/results"
+PROMPT_DIR = "example/prompts"
+os.makedirs(SAVE_DIR, exist_ok=True)
+os.makedirs(PROMPT_DIR, exist_ok=True)
 
-def run_tts(
-    text,
-    model,
-    prompt_text=None,
-    prompt_speech=None,
-    gender=None,
-    pitch=None,
-    speed=None,
-    save_dir="example/results",
-):
-    """Perform TTS inference and save the generated audio."""
-    logging.info(f"Saving audio to: {save_dir}")
+def generate_tts(user_id, text, gender=None, pitch=None, speed=None):
+    prompt_path = os.path.join(PROMPT_DIR, f"{user_id}.wav")
+    if not os.path.exists(prompt_path):
+        raise FileNotFoundError(f"User ID `{user_id}`에 대한 프롬프트 음성이 존재하지 않습니다.")
 
-    if prompt_text is not None:
-        prompt_text = None if len(prompt_text) <= 1 else prompt_text
-
-    # Ensure the save directory exists
-    os.makedirs(save_dir, exist_ok=True)
-
-    # Generate unique filename using timestamp
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    save_path = os.path.join(save_dir, f"{timestamp}.wav")
-
-    logging.info("Starting inference...")
-
-    # Perform inference and save the output audio
     with torch.no_grad():
-        wav = model.inference(
-            text,
-            prompt_speech,
-            prompt_text,
-            gender,
-            pitch,
-            speed,
-        )
-
+        print(f"TTS 생성 시작... [user_id: {user_id}]")
+        wav = model.inference(text, prompt_path, gender, pitch, speed)
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        user_dir = os.path.join(SAVE_DIR, user_id)
+        os.makedirs(user_dir, exist_ok=True)
+        save_path = os.path.join(user_dir, f"{timestamp}.wav")
         sf.write(save_path, wav, samplerate=16000)
+        print(f"TTS 생성 완료: {save_path}")
+        return save_path
 
-    logging.info(f"Audio saved at: {save_path}")
+@app.route("/upload-prompt", methods=["POST"])
+def upload_prompt():
+    user_id = request.form.get("user_id")
+    prompt_speech = request.files.get("prompt_speech")
 
-    return save_path
+    if not user_id or not prompt_speech:
+        return jsonify({"error": "user_id와 prompt_speech는 필수입니다."}), 400
 
+    prompt_path = os.path.join(PROMPT_DIR, f"{user_id}.wav")
 
-def build_ui(model_dir, device=0):
+    # if os.path.exists(prompt_path):
+    #     return jsonify({"error": "이미 프롬프트 음성이 등록되어 있습니다."}), 409
 
-    # Initialize model
-    model = initialize_model(model_dir, device=device)
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".tmp") as tmp:
+        tmp_path = tmp.name
+        prompt_speech.save(tmp_path)
 
-    # Define callback function for voice cloning
-    def voice_clone(text, prompt_text, prompt_wav_upload, prompt_wav_record):
-        """
-        Gradio callback to clone voice using text and optional prompt speech.
-        - text: The input text to be synthesised.
-        - prompt_text: Additional textual info for the prompt (optional).
-        - prompt_wav_upload/prompt_wav_record: Audio files used as reference.
-        """
-        prompt_speech = prompt_wav_upload if prompt_wav_upload else prompt_wav_record
-        prompt_text_clean = None if len(prompt_text) < 2 else prompt_text
+    audio = AudioSegment.from_file(tmp_path)
+    audio = audio.set_channels(1).set_frame_rate(16000)
+    audio.export(prompt_path, format="wav", codec="pcm_s16le")
 
-        audio_output_path = run_tts(
-            text,
-            model,
-            prompt_text=prompt_text_clean,
-            prompt_speech=prompt_speech
-        )
-        return audio_output_path
+    os.remove(tmp_path)
+    print(f"[{user_id}] 프롬프트 저장 및 변환 완료: {prompt_path}")
+    return jsonify({"message": "프롬프트 음성이 성공적으로 저장되었습니다."})
 
-    # Define callback function for creating new voices
-    def voice_creation(text, gender, pitch, speed):
-        """
-        Gradio callback to create a synthetic voice with adjustable parameters.
-        - text: The input text for synthesis.
-        - gender: 'male' or 'female'.
-        - pitch/speed: Ranges mapped by LEVELS_MAP_UI.
-        """
-        pitch_val = LEVELS_MAP_UI[int(pitch)]
-        speed_val = LEVELS_MAP_UI[int(speed)]
-        audio_output_path = run_tts(
-            text,
-            model,
-            gender=gender,
-            pitch=pitch_val,
-            speed=speed_val
-        )
-        return audio_output_path
+@app.route("/voice-clone", methods=["POST"])
+def voice_clone():
+    user_id = request.form.get("user_id")
+    text = request.form.get("text")
 
-    with gr.Blocks() as demo:
-        # Use HTML for centered title
-        gr.HTML('<h1 style="text-align: center;">Spark-TTS by SparkAudio</h1>')
-        with gr.Tabs():
-            # Voice Clone Tab
-            with gr.TabItem("Voice Clone"):
-                gr.Markdown(
-                    "### Upload reference audio or recording （上传参考音频或者录音）"
-                )
+    if not user_id or not text:
+        return jsonify({"error": "user_id와 text는 필수입니다."}), 400
 
-                with gr.Row():
-                    prompt_wav_upload = gr.Audio(
-                        sources="upload",
-                        type="filepath",
-                        label="Choose the prompt audio file, ensuring the sampling rate is no lower than 16kHz.",
-                    )
-                    prompt_wav_record = gr.Audio(
-                        sources="microphone",
-                        type="filepath",
-                        label="Record the prompt audio file.",
-                    )
-
-                with gr.Row():
-                    text_input = gr.Textbox(
-                        label="Text", lines=3, placeholder="Enter text here"
-                    )
-                    prompt_text_input = gr.Textbox(
-                        label="Text of prompt speech (Optional; recommended for cloning in the same language.)",
-                        lines=3,
-                        placeholder="Enter text of the prompt speech.",
-                    )
-
-                audio_output = gr.Audio(
-                    label="Generated Audio", autoplay=True, streaming=True
-                )
-
-                generate_buttom_clone = gr.Button("Generate")
-
-                generate_buttom_clone.click(
-                    voice_clone,
-                    inputs=[
-                        text_input,
-                        prompt_text_input,
-                        prompt_wav_upload,
-                        prompt_wav_record,
-                    ],
-                    outputs=[audio_output],
-                )
-
-            # Voice Creation Tab
-            with gr.TabItem("Voice Creation"):
-                gr.Markdown(
-                    "### Create your own voice based on the following parameters"
-                )
-
-                with gr.Row():
-                    with gr.Column():
-                        gender = gr.Radio(
-                            choices=["male", "female"], value="male", label="Gender"
-                        )
-                        pitch = gr.Slider(
-                            minimum=1, maximum=5, step=1, value=3, label="Pitch"
-                        )
-                        speed = gr.Slider(
-                            minimum=1, maximum=5, step=1, value=3, label="Speed"
-                        )
-                    with gr.Column():
-                        text_input_creation = gr.Textbox(
-                            label="Input Text",
-                            lines=3,
-                            placeholder="Enter text here",
-                            value="You can generate a customized voice by adjusting parameters such as pitch and speed.",
-                        )
-                        create_button = gr.Button("Create Voice")
-
-                audio_output = gr.Audio(
-                    label="Generated Audio", autoplay=True, streaming=True
-                )
-                create_button.click(
-                    voice_creation,
-                    inputs=[text_input_creation, gender, pitch, speed],
-                    outputs=[audio_output],
-                )
-
-    return demo
-
-
-def parse_arguments():
-    """
-    Parse command-line arguments such as model directory and device ID.
-    """
-    parser = argparse.ArgumentParser(description="Spark TTS Gradio server.")
-    parser.add_argument(
-        "--model_dir",
-        type=str,
-        default="pretrained_models/Spark-TTS-0.5B",
-        help="Path to the model directory."
-    )
-    parser.add_argument(
-        "--device",
-        type=int,
-        default=0,
-        help="ID of the GPU device to use (e.g., 0 for cuda:0)."
-    )
-    parser.add_argument(
-        "--server_name",
-        type=str,
-        default="0.0.0.0",
-        help="Server host/IP for Gradio app."
-    )
-    parser.add_argument(
-        "--server_port",
-        type=int,
-        default=7860,
-        help="Server port for Gradio app."
-    )
-    return parser.parse_args()
+    try:
+        output_path = generate_tts(user_id, text)
+        return send_file(output_path, mimetype="audio/wav")
+    except FileNotFoundError as e:
+        return jsonify({"error": str(e)}), 404
 
 if __name__ == "__main__":
-    # Parse command-line arguments
-    args = parse_arguments()
-
-    # Build the Gradio demo by specifying the model directory and GPU device
-    demo = build_ui(
-        model_dir=args.model_dir,
-        device=args.device
-    )
-
-    # Launch Gradio with the specified server name and port
-    demo.launch(
-        server_name=args.server_name,
-        server_port=args.server_port
-    )
+    print("Flask 서버 시작 중…")
+    app.run(host="0.0.0.0", port=5000)
