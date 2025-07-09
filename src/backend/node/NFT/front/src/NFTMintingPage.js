@@ -8,7 +8,6 @@ import NFTAudioFetcher from './components/NFTAudioFetcher';
 const networkId = process.env.REACT_APP_NETWORK_ID || '1337';
 const contractAddress = MyAudioNFT.networks?.[networkId]?.address;
 const contractABI = MyAudioNFT.abi;
-
 const PINATA_API_KEY = process.env.REACT_APP_PINATA_API_KEY;
 const PINATA_SECRET_KEY = process.env.REACT_APP_PINATA_SECRET_API_KEY;
 
@@ -145,9 +144,8 @@ const NFTMintingPage = () => {
         {previewUrl && <img src={previewUrl} alt="preview" style={{ width: 150 }} />}
         <button onClick={handleMint}>🛠️ NFT 민팅</button>
       </div>
-
       <p>{status}</p>
-      <NFTAudioFetcher />
+      < NFTAudioFetcher />
     </div>
   );
 };

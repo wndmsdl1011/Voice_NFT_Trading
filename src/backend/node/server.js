@@ -1,7 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const dotenv = require("dotenv");
-const mongoose = require("./Oauth/utils/db");
+const mongoose = require("./oauth/utils/db");
 
 const authRoutes = require('./oauth/routes/auth.routes');
 const nftRoutes = require('./NFT/routes/nft.routes');
@@ -11,7 +11,7 @@ const cors = require('cors');
 
 // Swagger 설정
 const swaggerUi = require('swagger-ui-express');
-const swaggerSpec = require('./oauth/utils/swagger');
+const swaggerSpec = require('./utils/swagger');
 
 const app = express();
 app.use(

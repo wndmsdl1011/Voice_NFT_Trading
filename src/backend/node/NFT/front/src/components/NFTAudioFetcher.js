@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Web3 from 'web3';
-import MyAudioNFT from './contracts/MyAudioNFT.json';
+import MyAudioNFT from '../contracts/MyAudioNFT.json';
 
 const NFTAudioFetcher = () => {
   const [tokenId, setTokenId] = useState('');
