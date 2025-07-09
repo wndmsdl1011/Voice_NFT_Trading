@@ -10,6 +10,7 @@ import {
   AvatarFallback,
 } from "../../components/ui/Avatar";
 import { useToast } from "../../hooks/useToast";
+import apiService from "../../services/api";
 import {
   Play,
   Pause,
@@ -307,24 +308,25 @@ function TTSPage() {
 
     setIsGenerating(true);
 
-    // TTS 생성 프로세스 시뮬레이션
-    const ttsPromise = new Promise((resolve, reject) => {
-      setTimeout(() => {
-        // 85% 확률로 성공
-        if (Math.random() > 0.15) {
-          resolve({ audioUrl: "/generated-audio.mp3", duration: "0:45" });
-        } else {
-          reject(new Error("음성 생성 중 오류가 발생했습니다."));
-        }
-      }, 3000);
-    });
-
     try {
-      await showPromise(ttsPromise, {
+      // 실제 TTS 생성 API 호출
+      const ttsPromise = apiService.tts.generateSpeech(
+        selectedVoice,
+        inputText
+      );
+
+      const result = await showPromise(ttsPromise, {
         loading: "AI가 음성을 생성하고 있습니다...",
         success: "음성이 성공적으로 생성되었습니다!",
         error: "음성 생성에 실패했습니다. 다시 시도해주세요.",
       });
+
+      // 생성된 음성 파일 처리
+      if (result instanceof Blob) {
+        const audioUrl = URL.createObjectURL(result);
+        console.log("Generated audio URL:", audioUrl);
+        // 여기서 오디오 플레이어에 URL 설정
+      }
     } catch (error) {
       console.error("TTS generation failed:", error);
     } finally {

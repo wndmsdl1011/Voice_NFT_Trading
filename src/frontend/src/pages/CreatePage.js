@@ -1,4 +1,5 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import Button from "../components/ui/Button";
 import { Card, CardContent } from "../components/ui/Card";
@@ -7,9 +8,10 @@ import Textarea from "../components/ui/Textarea";
 import Badge from "../components/ui/Badge";
 import Progress from "../components/ui/Progress";
 import { useToast } from "../hooks/useToast";
+import { useAuth } from "../hooks/useAuth";
+import apiService from "../services/api";
 import {
   Upload,
-  Mic,
   CheckCircle,
   Palette,
   DollarSign,
@@ -138,7 +140,7 @@ const CardDescription = styled.p`
 const UploadArea = styled.div`
   border: 2px dashed #86efac;
   border-radius: 12px;
-  padding: 2rem;
+  padding: 3rem 2rem;
   text-align: center;
   cursor: pointer;
   background: rgba(240, 253, 250, 0.5);
@@ -147,20 +149,8 @@ const UploadArea = styled.div`
   &:hover {
     border-color: #4ade80;
     background: rgba(240, 253, 250, 0.8);
-  }
-`;
-
-const RecordButton = styled(Button)`
-  width: 8rem;
-  height: 8rem;
-  border-radius: 50%;
-  border: ${(props) => (props.recording ? "none" : "2px solid #86efac")};
-  color: ${(props) => (props.recording ? "white" : "#047857")};
-  background: ${(props) => (props.recording ? "#ef4444" : "transparent")};
-
-  &:hover {
-    background: ${(props) =>
-      props.recording ? "#dc2626" : "rgba(240, 253, 250, 0.8)"};
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
   }
 `;
 
@@ -401,13 +391,23 @@ const PreviewImage = styled.img`
 `;
 
 function CreatePage() {
-  const { showSuccess, showPromise } = useToast();
+  const { showSuccess, showPromise, showError } = useToast();
+  const navigate = useNavigate();
+  const { isAuthenticated, user } = useAuth();
+
+  // 페이지 로드 시 인증 확인
+  useEffect(() => {
+    if (!isAuthenticated) {
+      // 현재 경로를 저장하고 로그인 페이지로 이동
+      localStorage.setItem("redirectAfterLogin", "/create");
+      navigate("/login");
+    }
+  }, [isAuthenticated, navigate]);
 
   const [currentStep, setCurrentStep] = useState(1);
   const [audioFile, setAudioFile] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingProgress, setProcessingProgress] = useState(0);
-  const [isRecording, setIsRecording] = useState(false);
   const [isTraining, setIsTraining] = useState(false);
   const [trainingProgress, setTrainingProgress] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -436,52 +436,82 @@ function CreatePage() {
     if (file) {
       setAudioFile(file);
       showSuccess(`${file.name} 파일이 업로드되었습니다.`);
-      processAudio();
+      processAudio(file); // 파일을 직접 전달
     }
   };
 
-  const processAudio = () => {
+  const processAudio = async (file) => {
     setIsProcessing(true);
     setProcessingProgress(0);
 
-    const interval = setInterval(() => {
-      setProcessingProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setIsProcessing(false);
-          startTraining();
-          return 100;
+    try {
+      // JWT 토큰에서 사용자 ID 가져오기
+      const token = localStorage.getItem("authToken");
+      let userId = "temp_user";
+
+      if (token) {
+        try {
+          const payload = JSON.parse(atob(token.split(".")[1]));
+          userId = payload.id || payload.kakaoId || payload._id || "temp_user";
+          console.log("JWT 토큰 정보:", payload);
+        } catch (e) {
+          console.error("JWT 토큰 파싱 오류:", e);
         }
-        return prev + 10;
+      }
+
+      console.log("사용자 ID:", userId, "사용자 정보:", user);
+
+      // 실제 음성 파일 업로드 및 처리
+      const uploadPromise = apiService.tts.uploadVoice(
+        userId,
+        file || audioFile
+      );
+
+      // 진행률 시뮬레이션
+      const progressInterval = setInterval(() => {
+        setProcessingProgress((prev) => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 300);
+
+      await showPromise(uploadPromise, {
+        loading: "음성 파일을 업로드하고 처리하는 중입니다...",
+        success: "음성 파일이 성공적으로 업로드되었습니다!",
+        error: "음성 파일 업로드에 실패했습니다. 다시 시도해주세요.",
       });
-    }, 300);
+
+      clearInterval(progressInterval);
+      setProcessingProgress(100);
+      setIsProcessing(false);
+      startTraining();
+    } catch (error) {
+      console.error("Audio processing error:", error);
+      setIsProcessing(false);
+      setProcessingProgress(0);
+    }
   };
 
   const startTraining = () => {
     setIsTraining(true);
     setTrainingProgress(0);
 
+    // 학습 시뮬레이션 (실제로는 Spark-TTS가 즉시 사용 가능)
     const interval = setInterval(() => {
       setTrainingProgress((prev) => {
         if (prev >= 100) {
           clearInterval(interval);
           setIsTraining(false);
           setCurrentStep(2);
+          showSuccess("AI 음성 모델 학습이 완료되었습니다!");
           return 100;
         }
         return prev + 5;
       });
     }, 500);
-  };
-
-  const handleRecording = () => {
-    setIsRecording(!isRecording);
-    if (!isRecording) {
-      setTimeout(() => {
-        setIsRecording(false);
-        processAudio();
-      }, 8000);
-    }
   };
 
   const handlePlaySample = () => {
@@ -499,33 +529,56 @@ function CreatePage() {
     }
   };
 
-  const handleMintNFT = () => {
-    console.log("NFT 민팅 데이터:", { audioFile, formData });
+  const handleMintNFT = async () => {
+    // 필수 데이터 검증
+    if (!audioFile) {
+      showError("음성 파일이 필요합니다.");
+      return;
+    }
 
-    const mintingPromise = new Promise((resolve, reject) => {
-      setTimeout(() => {
-        if (Math.random() > 0.1) {
-          resolve({ tokenId: Math.floor(Math.random() * 10000) });
-        } else {
-          reject(new Error("민팅 중 오류가 발생했습니다."));
-        }
-      }, 3000);
-    });
+    if (!formData.title.trim()) {
+      showError("NFT 제목을 입력해주세요.");
+      return;
+    }
 
-    showPromise(mintingPromise, {
-      loading: "NFT 민팅 중...",
-      success: (data) =>
-        `NFT가 성공적으로 민팅되었습니다! Token ID: ${data.tokenId}`,
-      error: "NFT 민팅에 실패했습니다. 다시 시도해주세요.",
-    })
-      .then(() => {
-        setTimeout(() => {
-          window.location.href = "/marketplace";
-        }, 2000);
-      })
-      .catch(() => {
-        // 에러 처리는 이미 토스트로 표시됨
+    if (!user?.walletAddress) {
+      showError("지갑 주소가 설정되지 않았습니다. 프로필을 완성해주세요.");
+      return;
+    }
+
+    try {
+      // NFT 민팅 데이터 준비
+      const nftData = {
+        image: formData.image,
+        audio: audioFile,
+        title: formData.title,
+        description: formData.description,
+        walletAddress: user.walletAddress,
+        price: formData.price || "0",
+      };
+
+      console.log("NFT 민팅 시작:", nftData);
+
+      // 백엔드 API 호출로 실제 NFT 민팅
+      const mintingPromise = apiService.nft.mint(nftData);
+
+      const result = await showPromise(mintingPromise, {
+        loading: "NFT 민팅 중... 블록체인에 등록하고 있습니다.",
+        success: (data) =>
+          `NFT가 성공적으로 민팅되었습니다! Token ID: ${data.tokenId}`,
+        error: "NFT 민팅에 실패했습니다. 다시 시도해주세요.",
       });
+
+      console.log("NFT 민팅 완료:", result);
+
+      // 성공 시 마켓플레이스로 이동
+      setTimeout(() => {
+        navigate("/marketplace");
+      }, 2000);
+    } catch (error) {
+      console.error("NFT 민팅 오류:", error);
+      // 에러는 이미 showPromise에서 토스트로 표시됨
+    }
   };
 
   const handleImageUpload = (event) => {
@@ -595,74 +648,53 @@ function CreatePage() {
               <CardHeader>
                 <CardTitle>
                   <Upload size={20} />
-                  음성 샘플 업로드 또는 녹음
+                  음성 샘플 업로드
                 </CardTitle>
                 <CardDescription>
-                  AI 학습을 위한 음성 샘플을 제공하세요 (최소 30초 권장)
+                  AI 학습을 위한 음성 샘플을 업로드하세요 (최소 30초 권장)
                 </CardDescription>
               </CardHeader>
               <CardContent style={{ padding: "0 1.5rem 1.5rem" }}>
-                <div style={{ marginBottom: "1.5rem" }}>
-                  <h3 style={{ fontWeight: 500, marginBottom: "0.75rem" }}>
-                    음성 파일 업로드
-                  </h3>
-                  <UploadArea onClick={() => fileInputRef.current?.click()}>
-                    <Upload
-                      size={32}
-                      style={{ margin: "0 auto 0.5rem", color: "#4ade80" }}
-                    />
-                    <p style={{ fontSize: "0.875rem", color: "#6b7280" }}>
-                      {audioFile
-                        ? audioFile.name
-                        : "클릭하여 업로드하거나 드래그 앤 드롭"}
-                    </p>
-                    <p
-                      style={{
-                        fontSize: "0.75rem",
-                        color: "#9ca3af",
-                        marginTop: "0.25rem",
-                      }}
-                    >
-                      MP3, WAV, M4A (최대 50MB, 30초 이상 권장)
-                    </p>
-                  </UploadArea>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="audio/*"
-                    onChange={handleFileUpload}
-                    style={{ display: "none" }}
+                <UploadArea onClick={() => fileInputRef.current?.click()}>
+                  <Upload
+                    size={48}
+                    style={{ margin: "0 auto 1rem", color: "#4ade80" }}
                   />
-                </div>
-{/* 
-                <div style={{ textAlign: "center", margin: "1.5rem 0" }}>
-                  <span style={{ color: "#9ca3af" }}>또는</span>
-                </div>
-
-                <div>
-                  <h3 style={{ fontWeight: 500, marginBottom: "0.75rem" }}>
-                    음성 녹음
-                  </h3>
-                  <div style={{ textAlign: "center" }}>
-                    <RecordButton
-                      recording={isRecording}
-                      onClick={handleRecording}
-                    >
-                      <Mic size={32} />
-                    </RecordButton>
-                    <p
-                      style={{
-                        fontSize: "0.875rem",
-                        color: "#6b7280",
-                        marginTop: "0.75rem",
-                      }}
-                    >
-                      {isRecording
-                        ? "녹음 중... 클릭하여 중지"
-                        : "클릭하여 녹음 시작"}
-                    </p>
-                  </div>
-                </div> */}
+                  <p
+                    style={{
+                      fontSize: "1rem",
+                      color: "#374151",
+                      fontWeight: 500,
+                      marginBottom: "0.5rem",
+                    }}
+                  >
+                    {audioFile ? audioFile.name : "음성 파일을 선택하세요"}
+                  </p>
+                  <p
+                    style={{
+                      fontSize: "0.875rem",
+                      color: "#6b7280",
+                      marginBottom: "0.5rem",
+                    }}
+                  >
+                    클릭하여 업로드하거나 파일을 드래그 앤 드롭하세요
+                  </p>
+                  <p
+                    style={{
+                      fontSize: "0.75rem",
+                      color: "#9ca3af",
+                    }}
+                  >
+                    MP3, WAV, M4A 파일 지원 (최대 50MB, 30초 이상 권장)
+                  </p>
+                </UploadArea>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="audio/*"
+                  onChange={handleFileUpload}
+                  style={{ display: "none" }}
+                />
 
                 {(isProcessing || isTraining) && (
                   <ProcessingContainer>

@@ -1,7 +1,8 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { Github, Twitter, MessageCircle } from "lucide-react";
+import { requireAuth } from "../../utils/auth";
 
 const FooterContainer = styled.footer`
   background: linear-gradient(to right, #0f172a, #1f2937);
@@ -135,6 +136,22 @@ const DiscordIcon = () => (
 );
 
 const Footer = () => {
+  const navigate = useNavigate();
+
+  const handleCreateClick = (e) => {
+    e.preventDefault();
+    if (requireAuth(navigate, "/create")) {
+      navigate("/create");
+    }
+  };
+
+  const handleProfileClick = (e) => {
+    e.preventDefault();
+    if (requireAuth(navigate, "/profile")) {
+      navigate("/profile");
+    }
+  };
+
   return (
     <FooterContainer>
       <FooterContent>
@@ -160,10 +177,10 @@ const Footer = () => {
                 <FooterLink to="/marketplace">마켓플레이스</FooterLink>
               </FooterListItem>
               <FooterListItem>
-                <FooterLink to="/create">NFT 생성</FooterLink>
+                <FooterLink to="/create" onClick={handleCreateClick}>NFT 생성</FooterLink>
               </FooterListItem>
               <FooterListItem>
-                <FooterLink to="/profile">내 프로필</FooterLink>
+                <FooterLink to="/profile" onClick={handleProfileClick}>내 프로필</FooterLink>
               </FooterListItem>
             </FooterList>
           </FooterSection>

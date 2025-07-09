@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import {
   Settings,
@@ -8,11 +8,7 @@ import {
   Eye,
   Copy,
   ExternalLink,
-  Instagram,
-  Twitter,
-  Facebook,
   Edit3,
-  Camera,
   Check,
   X
 } from "lucide-react";
@@ -20,6 +16,41 @@ import Button from "../../components/ui/Button";
 import { Card, CardContent } from "../../components/ui/Card";
 import { useAppContext } from "../../contexts/AppContext";
 import { useToast } from "../../hooks/useToast";
+import ApiService from "../../services/api";
+
+// 소셜 로그인 아이콘 컴포넌트들
+const KakaoIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 3c5.799 0 10.5 3.664 10.5 8.185 0 4.52-4.701 8.184-10.5 8.184a13.5 13.5 0 0 1-1.727-.11l-4.408 2.883c-.501.265-.678.236-.472-.413l.892-3.678c-2.88-1.46-4.785-3.99-4.785-6.866C1.5 6.665 6.201 3 12 3z" />
+  </svg>
+);
+
+const GoogleIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+    <path
+      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+      fill="#4285F4"
+    />
+    <path
+      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+      fill="#34A853"
+    />
+    <path
+      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+      fill="#FBBC05"
+    />
+    <path
+      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+      fill="#EA4335"
+    />
+  </svg>
+);
+
+const NaverIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M16.273 12.845 7.376 0H0v24h7.726V11.156L16.624 24H24V0h-7.727v12.845z" />
+  </svg>
+);
 
 const PageContainer = styled.div`
   min-height: 100vh;
@@ -125,25 +156,19 @@ const ProfileHeader = styled.div`
         align-items: center;
         justify-content: center;
 
-        &.instagram {
-          background: linear-gradient(
-            45deg,
-            #405de6,
-            #5851db,
-            #833ab4,
-            #c13584,
-            #e1306c
-          );
-          color: white;
+        &.kakao {
+          background: #fee500;
+          color: #000000;
         }
 
-        &.twitter {
-          background: #000000;
-          color: white;
+        &.google {
+          background: #ffffff;
+          color: #000000;
+          border: 1px solid #dadce0;
         }
 
-        &.facebook {
-          background: #1877f2;
+        &.naver {
+          background: #03c75a;
           color: white;
         }
 
@@ -351,8 +376,12 @@ const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState("created");
   const [isEditing, setIsEditing] = useState(false);
   const [editedBio, setEditedBio] = useState("");
-  const { user } = useAppContext();
+  const [isUpdatingBio, setIsUpdatingBio] = useState(false);
+  const { user, setUser, isInitialized } = useAppContext();
   const { showSuccess, showError } = useToast();
+
+  // AppContext에서 이미 프로필 정보를 로드하므로 별도 로딩 불필요
+  // useEffect는 제거하고 AppContext의 user 정보를 그대로 사용
 
   const getUserInitial = () => {
     if (!user) return "사";
@@ -378,35 +407,18 @@ const ProfilePage = () => {
   const getSocialIcon = (platform) => {
     switch (platform) {
       case "kakao":
-        return <span style={{ fontSize: '0.75rem', fontWeight: 'bold' }}>카</span>;
-      case "instagram":
-        return <Instagram />;
-      case "twitter":
-        return <Twitter />;
-      case "facebook":
-        return <Facebook />;
+        return <KakaoIcon />;
+      case "google":
+        return <GoogleIcon />;
+      case "naver":
+        return <NaverIcon />;
       default:
         return <span style={{ fontSize: '0.75rem', fontWeight: 'bold' }}>소</span>;
     }
   };
 
   const getSocialPlatformName = (platform) => {
-    switch (platform) {
-      case "kakao":
-        return "카카오";
-      case "instagram":
-        return "Instagram";
-      case "twitter":
-        return "X (Twitter)";
-      case "facebook":
-        return "Facebook";
-      case "naver":
-        return "네이버";
-      case "google":
-        return "구글";
-      default:
-        return platform || "소셜 로그인";
-    }
+    return "로그인";
   };
 
   const handleCopyWallet = () => {
@@ -423,10 +435,32 @@ const ProfilePage = () => {
     setIsEditing(true);
   };
 
-  const handleSaveBio = () => {
-    // TODO: API 호출로 실제 저장 구현
-    showSuccess("프로필이 업데이트되었습니다!");
-    setIsEditing(false);
+  const handleSaveBio = async () => {
+    if (!editedBio.trim()) {
+      showError("소개를 입력해주세요.");
+      return;
+    }
+
+    setIsUpdatingBio(true);
+    try {
+      await ApiService.auth.updateProfile({
+        bio: editedBio.trim()
+      });
+      
+      // 사용자 정보 부분 업데이트 (기존 정보는 유지)
+      setUser(prevUser => ({
+        ...prevUser,
+        bio: editedBio.trim()
+      }));
+      
+      showSuccess("프로필이 업데이트되었습니다!");
+      setIsEditing(false);
+    } catch (error) {
+      console.error("프로필 업데이트 오류:", error);
+      showError("프로필 업데이트에 실패했습니다.");
+    } finally {
+      setIsUpdatingBio(false);
+    }
   };
 
   const handleCancelEdit = () => {
@@ -434,8 +468,8 @@ const ProfilePage = () => {
     setEditedBio("");
   };
 
-  // 사용자가 없으면 로딩 또는 에러 상태 표시
-  if (!user) {
+  // 초기화가 완료되지 않았거나 사용자가 없으면 로딩 상태 표시
+  if (!isInitialized || !user) {
     return (
       <PageContainer>
         <Container>
@@ -461,9 +495,9 @@ const ProfilePage = () => {
       <Container>
         <ProfileHeader>
           <div className="avatar">
-            {user.profileImage ? (
+            {user.profileImage || user.profileImg || user.avatar ? (
               <img 
-                src={user.profileImage} 
+                src={user.profileImage || user.profileImg || user.avatar} 
                 alt="프로필" 
                 style={{
                   width: "100%",
@@ -471,10 +505,27 @@ const ProfilePage = () => {
                   objectFit: "cover",
                   borderRadius: "50%"
                 }}
+                onError={(e) => {
+                  // 이미지 로딩 실패시 기본 아바타로 대체
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'flex';
+                }}
               />
-            ) : (
-              getUserInitial()
-            )}
+            ) : null}
+            <div 
+              style={{
+                width: "100%",
+                height: "100%",
+                display: (user.profileImage || user.profileImg || user.avatar) ? 'none' : 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '2rem',
+                fontWeight: 'bold',
+                color: 'white'
+              }}
+            >
+              {getUserInitial()}
+            </div>
           </div>
           <div className="profile-info">
             <h1>{user.nickname || user.email || "사용자"}</h1>
@@ -494,8 +545,8 @@ const ProfilePage = () => {
                     borderRadius: '0.25rem'
                   }}
                 />
-                <Button size="sm" onClick={handleSaveBio}>
-                  <Check size={14} />
+                <Button size="sm" onClick={handleSaveBio} disabled={isUpdatingBio}>
+                  {isUpdatingBio ? "저장 중..." : <Check size={14} />}
                 </Button>
                 <Button size="sm" variant="outline" onClick={handleCancelEdit}>
                   <X size={14} />
@@ -514,7 +565,7 @@ const ProfilePage = () => {
               <span className={`platform-icon ${user.provider}`}>
                 {getSocialIcon(user.provider)}
               </span>
-              <span>{getSocialPlatformName(user.provider)}으로 로그인</span>
+              <span>로그인</span>
             </div>
 
             <div style={{ fontSize: '0.875rem', color: 'var(--gray-600)', marginTop: '0.5rem' }}>
@@ -525,10 +576,6 @@ const ProfilePage = () => {
             <Button variant="outline">
               <Settings className="w-4 h-4 mr-2" />
               설정
-            </Button>
-            <Button variant="ghost">
-              <Camera className="w-4 h-4 mr-2" />
-              사진 변경
             </Button>
           </div>
         </ProfileHeader>
