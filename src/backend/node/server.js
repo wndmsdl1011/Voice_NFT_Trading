@@ -3,26 +3,15 @@ const express = require("express");
 const dotenv = require("dotenv");
 const mongoose = require("./Oauth/utils/db");
 
-<<<<<<< HEAD
 const authRoutes = require('./oauth/routes/auth.routes');
 const nftRoutes = require('./NFT/routes/nft.routes');
 const userRoutes = require('./oauth/routes/user.routes');
+const voiceNftRoutes = require("./voice_nft/routes/voice_nft.routes");
 const cors = require('cors');
 
 // Swagger 설정
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./oauth/utils/swagger');
-=======
-const authRoutes = require("./Oauth/routes/auth.routes");
-const nftRoutes = require("./NFT/routes/nft.routes");
-const userRoutes = require("./Oauth/routes/user.routes");
-const voiceNftRoutes = require("./voice_nft/routes/voice_nft.routes");
-const cors = require("cors");
-
-// Swagger 설정
-const swaggerUi = require("swagger-ui-express");
-const swaggerSpec = require("./utils/swagger");
->>>>>>> a1f435082cdcfe400e0ab838f70f0bf7b93d61e9
 
 const app = express();
 app.use(
