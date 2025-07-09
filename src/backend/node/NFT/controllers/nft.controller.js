@@ -1,7 +1,9 @@
 const axios = require("axios");
 const path = require("path");
 const { exec } = require("child_process");
+const VoiceNFT = require("../models/voiceList.model"); // ✅ 모델 불러오기
 
+// Truffle 자동 배포 + ABI 복사
 exports.mintNFT = (req, res) => {
   const rootPath = path.resolve(__dirname, "../");
   const trufflePath = path.join(rootPath, "truffle-project");
@@ -30,25 +32,51 @@ exports.mintNFT = (req, res) => {
   });
 };
 
-exports.getNFTList = (req, res) => {
+// NFT 정보 DB 저장
+exports.saveNFT = async (req, res) => {
   try {
-    const contractData = require("../front/src/contracts/MyAudioNFT.json");
-    // 실제로는 Web3, contract address, ABI를 이용해 연결 필요
-    // 예시 데이터 반환
-    const nftList = [
-      { tokenId: 1, owner: "0x123...", uri: "https://example.com/nft/1" },
-      { tokenId: 2, owner: "0x456...", uri: "https://example.com/nft/2" },
-    ];
+    const { tokenId, title, description, tags, price } = req.body;
 
-    return res.status(200).json({
-      message: "NFT 목록 조회 성공",
-      data: nftList,
+    if (!tokenId || !title || !price) {
+      return res
+        .status(400)
+        .json({ error: "필수 필드 누락(tokenId, title, price)" });
+    }
+
+    const newNFT = new VoiceNFT({
+      tokenId,
+      title,
+      description,
+      tags,
+      price,
+      mint_date: new Date(),
     });
-  } catch (error) {
-    console.error("❌ NFT 목록 조회 오류:", error);
+
+    await newNFT.save();
+
+    return res.status(201).json({
+      message: "✅ NFT 메타데이터 DB 저장 완료",
+      data: newNFT,
+    });
+  } catch (err) {
+    console.error("❌ DB 저장 오류:", err);
     return res.status(500).json({
-      message: "NFT 목록 조회 실패",
-      error: error.toString(),
+      error: "서버 오류",
+      details: err.message,
+    });
+  }
+};
+
+// NFT 목록 조회
+exports.getNFTList = async (req, res) => {
+  try {
+    const list = await VoiceNFT.find().sort({ mint_date: -1 });
+    return res.status(200).json(list);
+  } catch (err) {
+    console.error("❌ NFT 목록 불러오기 실패:", err);
+    return res.status(500).json({
+      error: "서버 오류",
+      details: err.message,
     });
   }
 };

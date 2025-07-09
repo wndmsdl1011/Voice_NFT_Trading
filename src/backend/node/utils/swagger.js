@@ -60,14 +60,11 @@ const options = {
         security: [{ bearerAuth: [] }],
     },
     apis: [
-        path.join(__dirname, '../routes/*.js'),
-        path.join(__dirname, '../controllers/*.js'),
         path.join(__dirname, '../oauth/routes/*.js'),
-        path.join(__dirname, '../voice_nft/controllers/*.js'), // ✅ 수정
-        path.join(__dirname, '../voice_nft/routes/*.js'),      // ✅ 수정
-        // ❌ voice-nft → ✅ voice_nft
+        path.join(__dirname, '../NFT/routes/*.js'),
     ],
 };
 
 const specs = swaggerJsdoc(options);
 module.exports = specs;
+0

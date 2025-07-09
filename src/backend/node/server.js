@@ -1,17 +1,17 @@
 require("dotenv").config();
 const express = require("express");
 const dotenv = require("dotenv");
-const mongoose = require("./Oauth/utils/db");
+const mongoose = require("./oauth/utils/db");
 
-const authRoutes = require("./Oauth/routes/auth.routes");
-const nftRoutes = require("./NFT/routes/nft.routes");
-const userRoutes = require("./Oauth/routes/user.routes");
-const voiceNftRoutes = require("./voice_nft/routes/voice_nft.routes");
-const cors = require("cors");
+const authRoutes = require('./oauth/routes/auth.routes');
+const nftRoutes = require('./NFT/routes/nft.routes');
+const userRoutes = require('./oauth/routes/user.routes');
+const voiceNftRoutes = require("./NFT/routes/nft.routes");
+const cors = require('cors');
 
 // Swagger 설정
-const swaggerUi = require("swagger-ui-express");
-const swaggerSpec = require("./utils/swagger");
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./utils/swagger');
 
 const app = express();
 app.use(
@@ -34,7 +34,6 @@ console.log("userRoutes:", typeof userRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/nft", nftRoutes);
 app.use("/api/user", userRoutes);
-app.use("/api/voice-nfts", voiceNftRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
