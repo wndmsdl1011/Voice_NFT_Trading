@@ -1,5 +1,5 @@
 const axios = require('axios');
-const User = require('../models/user.model');
+const User = require('../models/User.model');
 const { generateToken } = require('../utils/jwt');
 
 // ✅ Google OAuth 로그인 시작

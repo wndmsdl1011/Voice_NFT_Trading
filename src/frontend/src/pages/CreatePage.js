@@ -474,8 +474,6 @@ function CreatePage() {
     }, 500);
   };
 
-
-
   const handlePlaySample = () => {
     setIsPlaying(!isPlaying);
     if (!isPlaying) {
