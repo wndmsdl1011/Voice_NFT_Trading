@@ -105,6 +105,9 @@ class ApiService {
     // ✅ 사용자 프로필 조회
     getProfile: () => this.get("/api/auth/profile"),
 
+    // 프로필 업데이트 (bio 수정)
+    updateProfile: (profileData) => this.put("/api/auth/profile", profileData),
+
     // 로그아웃
     logout: () => {
       this.removeToken();

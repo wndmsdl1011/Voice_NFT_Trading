@@ -147,9 +147,17 @@ function AuthSuccessPage() {
         setUser(userData);
         showSuccess("로그인이 완료되었습니다!");
 
-        // URL 정리 후 대시보드로 이동
+        // URL 정리
         cleanUrl();
-        navigate("/dashboard");
+
+        // 저장된 리다이렉트 경로 확인
+        const redirectPath = localStorage.getItem("redirectAfterLogin");
+        if (redirectPath) {
+          localStorage.removeItem("redirectAfterLogin");
+          navigate(redirectPath);
+        } else {
+          navigate("/dashboard");
+        }
 
       } catch (error) {
         console.error("Authentication error:", error);

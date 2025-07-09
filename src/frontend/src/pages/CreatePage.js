@@ -1,4 +1,5 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import Button from "../components/ui/Button";
 import { Card, CardContent } from "../components/ui/Card";
@@ -7,9 +8,9 @@ import Textarea from "../components/ui/Textarea";
 import Badge from "../components/ui/Badge";
 import Progress from "../components/ui/Progress";
 import { useToast } from "../hooks/useToast";
+import { isAuthenticated } from "../utils/auth";
 import {
   Upload,
-  Mic,
   CheckCircle,
   Palette,
   DollarSign,
@@ -138,7 +139,7 @@ const CardDescription = styled.p`
 const UploadArea = styled.div`
   border: 2px dashed #86efac;
   border-radius: 12px;
-  padding: 2rem;
+  padding: 3rem 2rem;
   text-align: center;
   cursor: pointer;
   background: rgba(240, 253, 250, 0.5);
@@ -147,22 +148,12 @@ const UploadArea = styled.div`
   &:hover {
     border-color: #4ade80;
     background: rgba(240, 253, 250, 0.8);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
   }
 `;
 
-const RecordButton = styled(Button)`
-  width: 8rem;
-  height: 8rem;
-  border-radius: 50%;
-  border: ${(props) => (props.recording ? "none" : "2px solid #86efac")};
-  color: ${(props) => (props.recording ? "white" : "#047857")};
-  background: ${(props) => (props.recording ? "#ef4444" : "transparent")};
 
-  &:hover {
-    background: ${(props) =>
-      props.recording ? "#dc2626" : "rgba(240, 253, 250, 0.8)"};
-  }
-`;
 
 const ProcessingContainer = styled.div`
   margin-top: 2rem;
@@ -402,12 +393,21 @@ const PreviewImage = styled.img`
 
 function CreatePage() {
   const { showSuccess, showPromise } = useToast();
+  const navigate = useNavigate();
+
+  // 페이지 로드 시 인증 확인
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      // 현재 경로를 저장하고 로그인 페이지로 이동
+      localStorage.setItem("redirectAfterLogin", "/create");
+      navigate("/login");
+    }
+  }, [navigate]);
 
   const [currentStep, setCurrentStep] = useState(1);
   const [audioFile, setAudioFile] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingProgress, setProcessingProgress] = useState(0);
-  const [isRecording, setIsRecording] = useState(false);
   const [isTraining, setIsTraining] = useState(false);
   const [trainingProgress, setTrainingProgress] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -474,15 +474,7 @@ function CreatePage() {
     }, 500);
   };
 
-  const handleRecording = () => {
-    setIsRecording(!isRecording);
-    if (!isRecording) {
-      setTimeout(() => {
-        setIsRecording(false);
-        processAudio();
-      }, 5000);
-    }
-  };
+
 
   const handlePlaySample = () => {
     setIsPlaying(!isPlaying);
@@ -595,74 +587,48 @@ function CreatePage() {
               <CardHeader>
                 <CardTitle>
                   <Upload size={20} />
-                  음성 샘플 업로드 또는 녹음
+                  음성 샘플 업로드
                 </CardTitle>
                 <CardDescription>
-                  AI 학습을 위한 음성 샘플을 제공하세요 (최소 30초 권장)
+                  AI 학습을 위한 음성 샘플을 업로드하세요 (최소 30초 권장)
                 </CardDescription>
               </CardHeader>
               <CardContent style={{ padding: "0 1.5rem 1.5rem" }}>
-                <div style={{ marginBottom: "1.5rem" }}>
-                  <h3 style={{ fontWeight: 500, marginBottom: "0.75rem" }}>
-                    음성 파일 업로드
-                  </h3>
-                  <UploadArea onClick={() => fileInputRef.current?.click()}>
-                    <Upload
-                      size={32}
-                      style={{ margin: "0 auto 0.5rem", color: "#4ade80" }}
-                    />
-                    <p style={{ fontSize: "0.875rem", color: "#6b7280" }}>
-                      {audioFile
-                        ? audioFile.name
-                        : "클릭하여 업로드하거나 드래그 앤 드롭"}
-                    </p>
-                    <p
-                      style={{
-                        fontSize: "0.75rem",
-                        color: "#9ca3af",
-                        marginTop: "0.25rem",
-                      }}
-                    >
-                      MP3, WAV, M4A (최대 50MB, 30초 이상 권장)
-                    </p>
-                  </UploadArea>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="audio/*"
-                    onChange={handleFileUpload}
-                    style={{ display: "none" }}
+                <UploadArea onClick={() => fileInputRef.current?.click()}>
+                  <Upload
+                    size={48}
+                    style={{ margin: "0 auto 1rem", color: "#4ade80" }}
                   />
-                </div>
-
-                <div style={{ textAlign: "center", margin: "1.5rem 0" }}>
-                  <span style={{ color: "#9ca3af" }}>또는</span>
-                </div>
-
-                <div>
-                  <h3 style={{ fontWeight: 500, marginBottom: "0.75rem" }}>
-                    음성 녹음
-                  </h3>
-                  <div style={{ textAlign: "center" }}>
-                    <RecordButton
-                      recording={isRecording}
-                      onClick={handleRecording}
-                    >
-                      <Mic size={32} />
-                    </RecordButton>
-                    <p
-                      style={{
-                        fontSize: "0.875rem",
-                        color: "#6b7280",
-                        marginTop: "0.75rem",
-                      }}
-                    >
-                      {isRecording
-                        ? "녹음 중... 클릭하여 중지"
-                        : "클릭하여 녹음 시작"}
-                    </p>
-                  </div>
-                </div>
+                  <p style={{ fontSize: "1rem", color: "#374151", fontWeight: 500, marginBottom: "0.5rem" }}>
+                    {audioFile
+                      ? audioFile.name
+                      : "음성 파일을 선택하세요"}
+                  </p>
+                  <p
+                    style={{
+                      fontSize: "0.875rem",
+                      color: "#6b7280",
+                      marginBottom: "0.5rem",
+                    }}
+                  >
+                    클릭하여 업로드하거나 파일을 드래그 앤 드롭하세요
+                  </p>
+                  <p
+                    style={{
+                      fontSize: "0.75rem",
+                      color: "#9ca3af",
+                    }}
+                  >
+                    MP3, WAV, M4A 파일 지원 (최대 50MB, 30초 이상 권장)
+                  </p>
+                </UploadArea>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="audio/*"
+                  onChange={handleFileUpload}
+                  style={{ display: "none" }}
+                />
 
                 {(isProcessing || isTraining) && (
                   <ProcessingContainer>
