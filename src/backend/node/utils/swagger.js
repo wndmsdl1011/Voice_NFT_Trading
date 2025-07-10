@@ -53,6 +53,7 @@ const options = {
                         likes_count: { type: 'integer' },
                         createdAt: { type: 'string', format: 'date-time' },
                         updatedAt: { type: 'string', format: 'date-time' },
+                        walletAddress: { type: 'string', description: '발행자 지갑 주소' }
                     }
                 },
                 VoiceNFTTrade: {
