@@ -40,6 +40,8 @@ const voiceListController = require("../controllers/voiceList.controller");
  *                   example: "Error: ENOENT: no such file or directory, ..."
  */
 router.post("/mint", nftController.mintNFT);
+router.post("/save", nftController.saveNFT);
+router.get("/list", nftController.getNFTList);
 /**
  * @swagger
  * /api/nft/save:
