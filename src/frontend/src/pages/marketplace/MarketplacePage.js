@@ -424,7 +424,7 @@ const MarketplacePage = () => {
               <NFTInfo>
                 <div className="nft-footer">
                   <span className="nft-price">
-                    {nft.price ? `${nft.price} ETH` : "Free"}
+                    {nft.price && parseFloat(nft.price) > 0 ? `${nft.price} ETH` : "Free"}
                   </span>
                   <Button
                     size="sm"

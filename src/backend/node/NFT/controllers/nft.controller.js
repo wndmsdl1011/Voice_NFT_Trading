@@ -93,7 +93,21 @@ exports.getNFTByTokenId = async (req, res) => {
       return res.status(404).json({ message: '해당 Token ID의 NFT가 존재하지 않습니다.' });
     }
 
-    return res.status(200).json(nft);
+    // Decimal128 타입의 price를 숫자로 변환
+    const nftData = nft.toObject();
+    console.log('원본 NFT 데이터:', JSON.stringify(nftData, null, 2));
+    
+    if (nftData.price) {
+      if (nftData.price.$numberDecimal) {
+        nftData.price = parseFloat(nftData.price.$numberDecimal);
+      } else if (typeof nftData.price === 'object' && nftData.price.toString) {
+        nftData.price = parseFloat(nftData.price.toString());
+      }
+    }
+    
+    console.log('변환된 NFT 데이터:', JSON.stringify(nftData, null, 2));
+
+    return res.status(200).json(nftData);
   } catch (error) {
     console.error('❌ NFT 조회 오류:', error);
     return res.status(500).json({ error: '서버 오류', details: error.message });

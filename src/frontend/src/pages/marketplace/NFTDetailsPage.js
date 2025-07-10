@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { Play, Heart, Share2, Loader, ArrowLeft } from "lucide-react";
@@ -144,23 +144,69 @@ const NFTDetailsPage = () => {
   const [loading, setLoading] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
+  
+  // 중복 실행 방지를 위한 ref
+  const authCheckRef = useRef(false);
+  const nftLoadRef = useRef(false);
+
+  // 인증 상태 체크 및 리다이렉트
+  useEffect(() => {
+    if (authCheckRef.current) return; // 이미 실행됐으면 중단
+    
+    if (!isAuthenticated) {
+      authCheckRef.current = true;
+      showError("NFT 상세 정보를 보려면 로그인이 필요합니다.");
+      setTimeout(() => {
+        navigate("/login");
+      }, 1500);
+      return;
+    }
+  }, [isAuthenticated, navigate, showError]);
 
   // NFT 상세 정보 로딩
   useEffect(() => {
+    // 인증되지 않은 경우 또는 이미 로딩했으면 중단
+    if (!isAuthenticated || nftLoadRef.current) {
+      return;
+    }
+
     const loadNFTDetails = async () => {
       try {
+        nftLoadRef.current = true; // 로딩 시작 표시
         setLoading(true);
         console.log(`NFT 상세 정보 로딩 중... Token ID: ${id}`);
 
         const response = await apiService.nft.getById(id);
         console.log("NFT 상세 정보 응답:", response);
+        console.log("price 타입:", typeof response.price);
+        console.log("price 값:", response.price);
+        console.log("parseFloat(price):", parseFloat(response.price));
+        console.log("price > 0 체크:", response.price && parseFloat(response.price) > 0);
 
-        // API 응답 구조에 따라 데이터 추출
-        const nftData = response.nft || response.data || response;
-        setNft(nftData);
+        // API 응답이 직접 NFT 데이터인 경우
+        // 프론트엔드에서도 price 변환 처리
+        if (response.price && typeof response.price === 'object') {
+          if (response.price.$numberDecimal) {
+            response.price = parseFloat(response.price.$numberDecimal);
+          } else if (response.price.toString) {
+            response.price = parseFloat(response.price.toString());
+          }
+        }
+        
+        console.log("최종 처리된 NFT 데이터:", response);
+        setNft(response);
       } catch (error) {
         console.error("NFT 상세 정보 로딩 실패:", error);
-        showError("NFT 정보를 불러오는데 실패했습니다.");
+
+        // 404 에러인 경우 특별한 메시지 표시
+        if (
+          error.message.includes("404") ||
+          error.message.includes("존재하지 않습니다")
+        ) {
+          showError("해당 NFT를 찾을 수 없습니다.");
+        } else {
+          showError("NFT 정보를 불러오는데 실패했습니다.");
+        }
 
         // 실패 시 마켓플레이스로 이동
         setTimeout(() => {
@@ -174,7 +220,7 @@ const NFTDetailsPage = () => {
     if (id) {
       loadNFTDetails();
     }
-  }, [id, showError, navigate]);
+  }, [id, isAuthenticated, showError, navigate]);
 
   // NFT 구매 처리
   const handlePurchase = async () => {
@@ -190,30 +236,27 @@ const NFTDetailsPage = () => {
     }
 
     try {
-      const purchaseData = {
-        buyerWalletAddress: user.walletAddress,
-        price: nft.price,
+      // 1. 카카오페이 결제 준비 요청
+      const readyData = {
+        item_name: nft.title || "Voice NFT",
+        quantity: 1,
+        total_amount: nft.price,
+        tokenId: nft.tokenId,
+        sellerWallet: nft.walletAddress,
       };
-
-      const purchasePromise = apiService.nft.purchase(
-        nft.tokenId,
-        purchaseData
-      );
-
-      const result = await showPromise(purchasePromise, {
-        loading: "NFT 구매 중... 블록체인 트랜잭션을 처리하고 있습니다.",
-        success: "NFT 구매가 완료되었습니다!",
-        error: "NFT 구매에 실패했습니다. 다시 시도해주세요.",
-      });
-
-      console.log("NFT 구매 완료:", result);
-
-      // 구매 완료 후 사용자 대시보드로 이동
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 2000);
+      const readyRes = await apiService.kakaopay.ready(readyData);
+      // readyRes에 결제 페이지 URL이 포함되어 있다고 가정 (ex: next_redirect_pc_url)
+      if (readyRes.next_redirect_pc_url) {
+        // 2. 결제 페이지로 이동 (카카오페이 결제)
+        window.location.href = readyRes.next_redirect_pc_url;
+        // 결제 완료 후 카카오페이에서 지정한 redirect/callback URL로 이동됨
+        // 그곳에서 approve API를 호출해야 함 (ex: /kakaopay/success?pg_token=...)
+      } else {
+        showError("카카오페이 결제 준비에 실패했습니다.");
+      }
     } catch (error) {
-      console.error("NFT 구매 오류:", error);
+      console.error("카카오페이 결제 준비 오류:", error);
+      showError("카카오페이 결제 준비에 실패했습니다.");
     }
   };
 
@@ -370,13 +413,13 @@ const NFTDetailsPage = () => {
             </div>
 
             <div className="nft-price">
-              {nft.price ? `${nft.price} ETH` : "Free"}
+              {nft.price && parseFloat(nft.price) > 0 ? `${nft.price} ETH` : "Free"}
             </div>
 
             <div className="nft-actions">
               {nft.price && parseFloat(nft.price) > 0 ? (
                 <Button size="lg" onClick={handlePurchase}>
-                  지금 구매하기
+                  {nft.price} ETH로 구매하기
                 </Button>
               ) : (
                 <Button size="lg" disabled>
