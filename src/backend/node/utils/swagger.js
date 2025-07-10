@@ -95,6 +95,7 @@ const options = {
     apis: [
         path.join(__dirname, '../oauth/routes/*.js'),
         path.join(__dirname, '../NFT/routes/*.js'),
+        path.join(__dirname, '../payment/routes/*.js'),
     ],
 };
 
