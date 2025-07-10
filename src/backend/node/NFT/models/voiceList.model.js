@@ -39,7 +39,12 @@ const VoiceListSchema = new mongoose.Schema({
         type: String,
         required: true,
         index: true
-    }
+    },
+    imageCID: {
+        type: String,
+        required: true,
+      },
+      
 }, {
     timestamps: true // createdAt, updatedAt 타임스탬프 자동 추가
 });

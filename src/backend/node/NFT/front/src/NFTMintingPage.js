@@ -17,9 +17,12 @@ const NFTMintingPage = () => {
   const [file, setFile] = useState(null);
   const [status, setStatus] = useState('');
   const [previewUrl, setPreviewUrl] = useState(null);
-
   const [web3, setWeb3] = useState(null);
   const [contract, setContract] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
+  const [audioFile, setAudioFile] = useState(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
+
 
   useEffect(() => {
     if (window.ethereum) {
@@ -38,16 +41,20 @@ const NFTMintingPage = () => {
     setContract(instance);
   };
 
-  const handleFileChange = (e) => {
+  const handleAudioChange = (e) => {
     const selected = e.target.files[0];
-    setFile(selected);
-    if (selected?.type?.startsWith('image/')) {
-      setPreviewUrl(URL.createObjectURL(selected));
-    } else {
-      setPreviewUrl(null);
-    }
+    setAudioFile(selected);
   };
 
+  const handleImageChange = (e) => {
+    const selected = e.target.files[0];
+    setImageFile(selected);
+    if (selected?.type?.startsWith('image/')) {
+      setImagePreviewUrl(URL.createObjectURL(selected));
+    } else {
+      setImagePreviewUrl(null);
+    }
+  };
   const uploadToPinata = async (file) => {
     const formData = new FormData();
     formData.append('file', file);
@@ -86,19 +93,23 @@ const NFTMintingPage = () => {
     let tokenId = null;
 
     try {
-      if (!file || !nftName || !nftDesc) {
+      if (!audioFile || !imageFile || !nftName || !nftDesc) {
         alert('⚠️ 모든 필드를 입력하세요.');
         return;
       }
-
+      
       setStatus('🚀 스마트 컨트랙트 자동 배포 중...');
       await axios.post('http://localhost:8000/api/nft/mint');
-
-      setStatus('📦 Pinata에 오디오 파일 업로드 중...');
-      const audioCID = await uploadToPinata(file);
-
+      
+      setStatus('🖼️ 이미지 Pinata 업로드 중...');
+      const imageCID = await uploadToPinata(imageFile);
+      
+      setStatus('🎧 오디오 Pinata 업로드 중...');
+      const audioCID = await uploadToPinata(audioFile);
+      
       setStatus('📝 메타데이터 생성 및 업로드 중...');
       const metadataCID = await uploadMetadataToPinata(nftName, nftDesc, audioCID);
+      
 
       const web3Instance = new Web3(window.ethereum);
       const netId = await web3Instance.eth.net.getId();
@@ -118,7 +129,8 @@ const NFTMintingPage = () => {
         description: nftDesc,
         price: "0.1",
         tags: [],
-        walletAddress: account
+        walletAddress: account,
+        imageCID: imageCID
       });
       
     } catch (err) {
@@ -137,22 +149,20 @@ const NFTMintingPage = () => {
         <p>🔗 연결됨: {account}</p>
       )}
 
-      <div className="form">
-        <input
-          type="text"
-          placeholder="NFT 이름"
-          value={nftName}
-          onChange={(e) => setNftName(e.target.value)}
-        />
-        <textarea
-          placeholder="NFT 설명"
-          value={nftDesc}
-          onChange={(e) => setNftDesc(e.target.value)}
-        />
-        <input type="file" accept="audio/*,image/*" onChange={handleFileChange} />
-        {previewUrl && <img src={previewUrl} alt="preview" style={{ width: 150 }} />}
-        <button onClick={handleMint}>🛠️ NFT 민팅</button>
-      </div>
+<div className="form">
+  <input type="text" placeholder="NFT 이름" value={nftName} onChange={(e) => setNftName(e.target.value)} />
+  <textarea placeholder="NFT 설명" value={nftDesc} onChange={(e) => setNftDesc(e.target.value)} />
+  
+  <label>🎧 오디오 업로드</label>
+  <input type="file" accept="audio/*" onChange={handleAudioChange} />
+
+  <label>🖼️ 이미지 업로드</label>
+  <input type="file" accept="image/*" onChange={handleImageChange} />
+  {imagePreviewUrl && <img src={imagePreviewUrl} alt="preview" style={{ width: 150 }} />}
+
+  <button onClick={handleMint}>🛠️ NFT 민팅</button>
+</div>
+
       <p>{status}</p>
     </div>
   );
