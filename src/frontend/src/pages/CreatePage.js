@@ -413,6 +413,7 @@ function CreatePage() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [selectedSample, setSelectedSample] = useState(0);
   const [customText, setCustomText] = useState("");
+  const [audioGenerationProgress, setAudioGenerationProgress] = useState(0);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -527,11 +528,7 @@ function CreatePage() {
   const handlePlaySample = async () => {
     if (isPlaying) return;
     setIsPlaying(true);
-    showPromise(Promise.resolve(), {
-      loading: "AI 음성 생성 중...",
-      success: "",
-      error: "",
-    });
+    setAudioGenerationProgress(0);
 
     try {
       const token = localStorage.getItem("authToken");
@@ -544,18 +541,38 @@ function CreatePage() {
 
       const text = customText || sampleTexts[selectedSample];
 
+      // 음성 생성 진행률 시뮬레이션 (더 균형잡힌 진행)
+      const progressInterval = setInterval(() => {
+        setAudioGenerationProgress((prev) => {
+          if (prev >= 85) {
+            clearInterval(progressInterval);
+            return 85;
+          }
+          // 진행률에 따라 증가량을 조절 (초반은 빠르게, 후반은 천천히)
+          const increment = prev < 30 ? 8 : prev < 60 ? 5 : 3;
+          return prev + increment;
+        });
+      }, 300);
+
       // Use apiService.tts.generateSpeechBlob instead of direct fetch
       const audioBlob = await apiService.tts.generateSpeechBlob(userId, text);
+      
+      // 완료 시 100%로 설정
+      clearInterval(progressInterval);
+      setAudioGenerationProgress(100);
+      
       const audioUrl = URL.createObjectURL(audioBlob);
       const audio = new Audio(audioUrl);
       audio.play();
 
       audio.onended = () => {
         setIsPlaying(false);
+        setAudioGenerationProgress(0);
       };
     } catch (error) {
       console.error("음성 생성 오류:", error);
       setIsPlaying(false);
+      setAudioGenerationProgress(0);
     }
   };
 
@@ -855,7 +872,7 @@ function CreatePage() {
                               size={24}
                               style={{ marginRight: "0.5rem" }}
                             />
-                            생성 및 재생 중...
+                            음성 생성 중... {audioGenerationProgress}%
                           </>
                         ) : (
                           <>
@@ -871,23 +888,38 @@ function CreatePage() {
                           marginTop: "0.5rem",
                         }}
                       >
-                        {customText
-                          ? "입력한 텍스트"
-                          : `샘플 ${selectedSample + 1}`}
-                        로 음성을 생성합니다
+                        {isPlaying && audioGenerationProgress >= 85
+                          ? "거의 다 완성되었습니다! 조금만 더 기다려주세요."
+                          : customText
+                          ? "입력한 텍스트로 음성을 생성합니다"
+                          : `샘플 ${selectedSample + 1}로 음성을 생성합니다`}
                       </p>
                     </div>
 
                     {isPlaying && (
-                      <AudioVisualization>
-                        {[...Array(20)].map((_, i) => (
-                          <AudioBar
-                            key={i}
-                            height={Math.random() * 40 + 10}
-                            delay={i * 0.1}
-                          />
-                        ))}
-                      </AudioVisualization>
+                      <ProcessingContainer style={{ marginTop: "1rem" }}>
+                        <ProcessingItem>
+                          <ProcessingHeader>
+                            <ProcessingTitle>
+                              <AudioWaveform size={20} color="#7c3aed" />
+                              <span>AI 음성 생성 중...</span>
+                            </ProcessingTitle>
+                            <ProcessingProgress>
+                              {audioGenerationProgress}%
+                            </ProcessingProgress>
+                          </ProcessingHeader>
+                          <Progress value={audioGenerationProgress} />
+                          <ProcessingDescription>
+                            {audioGenerationProgress < 30 
+                              ? "텍스트 분석 및 음성 특성 적용 중"
+                              : audioGenerationProgress < 70
+                              ? "AI 모델이 음성을 생성하고 있습니다"
+                              : audioGenerationProgress < 100
+                              ? "음성 품질 최적화 중"
+                              : "음성 생성 완료! 재생을 시작합니다"}
+                          </ProcessingDescription>
+                        </ProcessingItem>
+                      </ProcessingContainer>
                     )}
                   </CardContent>
                 </PreviewCard>
