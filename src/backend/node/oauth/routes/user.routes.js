@@ -7,10 +7,8 @@ const userController = require('../controllers/user.controller');
  * @swagger
  * /api/user/profile:
  *   post:
- *     summary: 사용자 프로필 조회
- *     description: JWT 토큰으로 인증된 사용자의 정보를 반환합니다.
- *     tags:
- *       - User
+ *     summary: 사용자 프로필 및 NFT 정보 조회
+ *     tags: [User]
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -19,19 +17,11 @@ const userController = require('../controllers/user.controller');
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 user:
- *                   $ref: '#/components/schemas/User'
+ *               $ref: '#/components/schemas/UserWithNFTResponse'
  *       401:
  *         description: 인증 토큰 없음
- *       404:
- *         description: 사용자 없음
- *       500:
- *         description: 서버 에러
  */
+
 router.post('/profile', userController.getProfile);
 
 module.exports = router;

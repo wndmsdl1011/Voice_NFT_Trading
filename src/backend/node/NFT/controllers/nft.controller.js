@@ -35,7 +35,7 @@ exports.mintNFT = (req, res) => {
 // NFT 정보 DB 저장
 exports.saveNFT = async (req, res) => {
   try {
-    const { tokenId, title, description, tags, price } = req.body;
+    const { tokenId, title, description, tags, price, walletAddress } = req.body;
 
     if (!tokenId || !title || !price) {
       return res
@@ -50,6 +50,7 @@ exports.saveNFT = async (req, res) => {
       tags,
       price,
       mint_date: new Date(),
+      walletAddress
     });
 
     await newNFT.save();

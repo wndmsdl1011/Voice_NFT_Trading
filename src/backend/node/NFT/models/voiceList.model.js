@@ -34,6 +34,11 @@ const VoiceListSchema = new mongoose.Schema({
         type: Number,
         default: 0,
         index: true // 인덱스 추가
+    },
+    walletAddress: {
+        type: String,
+        required: true,
+        index: true
     }
 }, {
     timestamps: true // createdAt, updatedAt 타임스탬프 자동 추가

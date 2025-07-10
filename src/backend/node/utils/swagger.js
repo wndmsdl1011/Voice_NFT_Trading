@@ -54,7 +54,40 @@ const options = {
                         createdAt: { type: 'string', format: 'date-time' },
                         updatedAt: { type: 'string', format: 'date-time' },
                     }
+                },
+                VoiceNFTTrade: {
+                    type: 'object',
+                    properties: {
+                        tokenId: { type: 'string', description: '거래된 NFT의 토큰 ID' },
+                        sellerWallet: { type: 'string', description: '판매자 지갑 주소' },
+                        buyerWallet: { type: 'string', description: '구매자 지갑 주소' },
+                        price: { type: 'number', format: 'float', description: '거래 가격' },
+                        tradeDate: { type: 'string', format: 'date-time', description: '거래 일시' },
+                        createdAt: { type: 'string', format: 'date-time' },
+                        updatedAt: { type: 'string', format: 'date-time' }
+                    }
+                },
+                UserWithNFTResponse: {
+                    type: 'object',
+                    properties: {
+                        success: {
+                            type: 'boolean',
+                            example: true
+                        },
+                        user: {
+                            $ref: '#/components/schemas/User'
+                        },
+                        mintedNFTs: {
+                            type: 'array',
+                            items: { $ref: '#/components/schemas/VoiceNFT' }
+                        },
+                        purchasedNFTs: {
+                            type: 'array',
+                            items: { $ref: '#/components/schemas/VoiceNFT' }
+                        }
+                    }
                 }
+
             },
         },
         security: [{ bearerAuth: [] }],
@@ -67,4 +100,3 @@ const options = {
 
 const specs = swaggerJsdoc(options);
 module.exports = specs;
-0
