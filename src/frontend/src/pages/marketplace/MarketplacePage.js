@@ -336,6 +336,47 @@ const MarketplacePage = () => {
     setFilteredNfts(filtered);
   }, [nfts, searchQuery]);
 
+  // 오디오 URL 생성 함수
+  const getAudioUrl = (nft) => {
+    if (nft.audioUrl) return nft.audioUrl;
+    if (nft.audioCID) return `https://gateway.pinata.cloud/ipfs/${nft.audioCID}`;
+    return null;
+  };
+
+  // 이미지 URL 생성 함수
+  const getImageUrl = (nft) => {
+    if (nft.imageUrl) return nft.imageUrl;
+    if (nft.imageCID) return `https://gateway.pinata.cloud/ipfs/${nft.imageCID}`;
+    return null;
+  };
+
+  // 오디오 재생 상태 관리
+  const [playingId, setPlayingId] = useState(null);
+  const audioRef = useRef(null);
+
+  const handlePlayAudio = (nft) => {
+    const audioUrl = getAudioUrl(nft);
+    if (audioUrl) {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+      const audio = new Audio(audioUrl);
+      audioRef.current = audio;
+      setPlayingId(nft.tokenId || nft.id);
+      audio.play();
+      audio.onended = () => {
+        setPlayingId(null);
+      };
+      // 3초 후 강제 정지 (임시)
+      setTimeout(() => {
+        audio.pause();
+        audio.currentTime = 0;
+        setPlayingId(null);
+      }, 3000);
+    }
+  };
+
   const renderNFTGrid = (nftList) => {
     if (loading) {
       return (
@@ -385,9 +426,9 @@ const MarketplacePage = () => {
         {nftList.map((nft) => (
           <NFTCard key={nft.tokenId || nft.id}>
             <NFTImageContainer>
-              {nft.imageUrl && (
+              {getImageUrl(nft) && (
                 <img
-                  src={nft.imageUrl}
+                  src={getImageUrl(nft)}
                   alt={nft.title}
                   style={{
                     width: "100%",
@@ -399,9 +440,9 @@ const MarketplacePage = () => {
                 />
               )}
               <div className="bg-overlay"></div>
-              <div className="play-button">
-                <div className="play-circle">
-                  <Play />
+              <div className="play-button" onClick={() => handlePlayAudio(nft)} style={{ cursor: getAudioUrl(nft) ? 'pointer' : 'not-allowed' }}>
+                <div className="play-circle" style={{ background: playingId === (nft.tokenId || nft.id) ? 'var(--emerald-600)' : 'rgba(255,255,255,0.9)' }}>
+                  <Play style={{ color: playingId === (nft.tokenId || nft.id) ? 'white' : 'var(--emerald-600)', transform: playingId === (nft.tokenId || nft.id) ? 'scale(1.2)' : 'scale(1)' }} />
                 </div>
               </div>
               <LikeButton variant="ghost" size="sm" $liked={nft.liked || false}>
@@ -414,7 +455,7 @@ const MarketplacePage = () => {
                   <div className="nft-details">
                     <CardTitle className="nft-title">{nft.title}</CardTitle>
                     <CardDescription className="nft-creator">
-                      {nft.creator || `@${nft.walletAddress?.slice(0, 8)}...`}
+                      {nft.creator || (nft.walletAddress ? `@${nft.walletAddress.slice(0, 8)}...` : "")}
                     </CardDescription>
                   </div>
                 </div>

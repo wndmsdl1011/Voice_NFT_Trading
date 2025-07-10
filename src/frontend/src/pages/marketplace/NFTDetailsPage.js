@@ -260,18 +260,27 @@ const NFTDetailsPage = () => {
     }
   };
 
+  // 오디오 URL 생성 함수
+  const getAudioUrl = () => {
+    if (nft?.audioUrl) return nft.audioUrl;
+    if (nft?.audioCID) return `https://gateway.pinata.cloud/ipfs/${nft.audioCID}`;
+    return null;
+  };
+
   // 음성 재생/정지
   const handlePlayAudio = () => {
-    if (nft?.audioUrl) {
+    const audioUrl = getAudioUrl();
+    if (audioUrl) {
       setIsPlaying(!isPlaying);
-      // 실제 오디오 재생 로직은 여기에 구현
-      // 예: new Audio(nft.audioUrl).play()
-
       if (!isPlaying) {
         showSuccess("음성 재생을 시작합니다.");
+        const audio = new Audio(audioUrl);
+        audio.play();
         // 임시로 3초 후 정지
         setTimeout(() => {
           setIsPlaying(false);
+          audio.pause();
+          audio.currentTime = 0;
         }, 3000);
       }
     } else {
@@ -372,12 +381,12 @@ const NFTDetailsPage = () => {
         <NFTGrid>
           <div>
             <NFTImage>
-              {(nft.imageUrl || nft.image) && (
+              {(nft.imageUrl || nft.imageCID) && (
                 <img
                   src={
                     nft.imageUrl
                       ? nft.imageUrl
-                      : `https://gateway.pinata.cloud/ipfs/${nft.image}`
+                      : `https://gateway.pinata.cloud/ipfs/${nft.imageCID}`
                   }
                   alt={nft.title}
                   style={{
@@ -457,10 +466,7 @@ const NFTDetailsPage = () => {
             </div>
 
             <div className="nft-stats">
-              <div className="stat-item">
-                <div className="label">토큰 ID</div>
-                <div className="value">{nft.tokenId}</div>
-              </div>
+              {/* 토큰 ID 항목 제거 */}
               <div className="stat-item">
                 <div className="label">체인</div>
                 <div className="value">{nft.blockchain || "Ethereum"}</div>
@@ -476,8 +482,8 @@ const NFTDetailsPage = () => {
               <div className="stat-item">
                 <div className="label">소유자</div>
                 <div className="value">
-                  {nft.ownerAddress
-                    ? `${nft.ownerAddress.slice(0, 8)}...`
+                  {nft.walletAddress
+                    ? `${nft.walletAddress.slice(0, 8)}...`
                     : "정보 없음"}
                 </div>
               </div>

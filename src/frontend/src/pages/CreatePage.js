@@ -756,7 +756,7 @@ function CreatePage() {
       });
 
       setMintingStatus('✅ 오디오 NFT 민팅 완료!');
-      showSuccess(`NFT가 성공적으로 민팅되었습니다! Token ID: ${tokenId}`);
+      showSuccess(`NFT가 성공적으로 민팅되었습니다!`);
 
       setTimeout(() => {
         navigate("/marketplace");
