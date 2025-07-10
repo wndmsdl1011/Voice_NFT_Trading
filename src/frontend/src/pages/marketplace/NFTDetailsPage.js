@@ -241,6 +241,8 @@ const NFTDetailsPage = () => {
         item_name: nft.title || "Voice NFT",
         quantity: 1,
         total_amount: nft.price,
+        tokenId: nft.tokenId,
+        sellerWallet: nft.walletAddress,
       };
       const readyRes = await apiService.kakaopay.ready(readyData);
       // readyRes에 결제 페이지 URL이 포함되어 있다고 가정 (ex: next_redirect_pc_url)
