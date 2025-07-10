@@ -503,7 +503,7 @@ function CreatePage() {
   const [contract, setContract] = useState(null);
   const [mintingStatus, setMintingStatus] = useState('');
   const [isMinting, setIsMinting] = useState(false);
-  const [mintingMode, setMintingMode] = useState('ai'); // 'ai' 또는 'direct'
+  // mintingMode 상태 제거
 
   const sampleTexts = [
     "안녕하세요, 저는 새로 학습된 AI 음성입니다. 자연스러운 발음으로 말씀드리고 있어요.",
@@ -698,17 +698,14 @@ function CreatePage() {
   };
 
   const handleMintNFT = async () => {
-    // 필수 데이터 검증
     if (!audioFile) {
-      showError("음성 파일이 필요합니다.");
+      showError("오디오 파일이 필요합니다.");
       return;
     }
-
     if (!formData.title.trim()) {
       showError("NFT 제목을 입력해주세요.");
       return;
     }
-
     if (!account || !contract) {
       showError("지갑을 먼저 연결해주세요.");
       return;
@@ -718,81 +715,49 @@ function CreatePage() {
     setMintingStatus('');
 
     try {
-      if (mintingMode === 'ai') {
-        // AI 음성 모델 NFT 민팅 (기존 방식)
-        const nftData = {
-          image: formData.image,
-          audio: audioFile,
-          title: formData.title,
-          description: formData.description,
-          walletAddress: account,
-          price: formData.price || "0",
-        };
+      setMintingStatus('🖼️ 이미지 업로드 중...');
+      const imageCID = await uploadToPinata(formData.image);
 
-        console.log("AI 음성 NFT 민팅 시작:", nftData);
+      setMintingStatus('🎧 오디오 업로드 중...');
+      const audioCID = await uploadToPinata(audioFile);
 
-        const mintingPromise = apiService.nft.mint(nftData);
-        const result = await showPromise(mintingPromise, {
-          loading: "AI 음성 NFT 민팅 중... 블록체인에 등록하고 있습니다.",
-          success: (data) =>
-            `AI 음성 NFT가 성공적으로 민팅되었습니다! Token ID: ${data.tokenId}`,
-          error: "AI 음성 NFT 민팅에 실패했습니다. 다시 시도해주세요.",
-        });
+      setMintingStatus('📝 메타데이터 생성 중...');
+      const metadata = {
+        name: formData.title,
+        description: formData.description,
+        audio: `ipfs://${audioCID}`,
+        image: `ipfs://${imageCID}`,
+        attributes: [
+          { trait_type: "Type", value: "Voice NFT" },
+          { trait_type: "Created", value: new Date().toISOString() }
+        ]
+      };
+      const metadataCID = await uploadMetadataToPinata(metadata);
 
-        console.log("AI 음성 NFT 민팅 완료:", result);
-      } else {
-        // 직접 NFT 민팅 (NFTMintingPage 방식)
-        setMintingStatus('🖼️ 이미지 업로드 중...');
-        const imageCID = await uploadToPinata(formData.image);
-        
-        setMintingStatus('🎧 오디오 업로드 중...');
-        const audioCID = await uploadToPinata(audioFile);
-        
-        setMintingStatus('📝 메타데이터 생성 중...');
-        const metadata = {
-          name: formData.title,
-          description: formData.description,
-          audio: `ipfs://${audioCID}`,
-          image: `ipfs://${imageCID}`,
-          attributes: [
-            {
-              trait_type: "Type",
-              value: "Voice NFT"
-            },
-            {
-              trait_type: "Created",
-              value: new Date().toISOString()
-            }
-          ]
-        };
-        const metadataCID = await uploadMetadataToPinata(metadata);
+      setMintingStatus('🚀 NFT 민팅 중...');
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      const result = await contract.methods.mintNFT(metadataCID, audioCID).send({
+        from: accounts[0],
+        gas: 3000000
+      });
 
-        setMintingStatus('🚀 NFT 민팅 중...');
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        const result = await contract.methods.mintNFT(metadataCID, audioCID).send({ 
-          from: accounts[0],
-          gas: 3000000
-        });
-        
-        const tokenId = result.events?.Transfer?.returnValues?.tokenId;
+      const tokenId = result.events?.Transfer?.returnValues?.tokenId;
 
-        setMintingStatus('💾 데이터베이스 저장 중...');
-        await axios.post('http://localhost:8000/api/nft/save', {
-          tokenId: tokenId?.toString() || 'unknown',
-          title: formData.title,
-          description: formData.description,
-          price: formData.price || "0.1",
-          tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()) : [],
-          walletAddress: account,
-          imageCID: imageCID,
-          audioCID: audioCID
-        });
+      setMintingStatus('💾 데이터베이스 저장 중...');
+      await axios.post('http://localhost:8000/api/nft/save', {
+        tokenId: tokenId?.toString() || 'unknown',
+        title: formData.title,
+        description: formData.description,
+        price: formData.price || "0.1",
+        tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()) : [],
+        walletAddress: account,
+        imageCID: imageCID,
+        audioCID: audioCID
+      });
 
-        setMintingStatus('✅ 직접 민팅 완료!');
-        showSuccess(`NFT가 성공적으로 민팅되었습니다! Token ID: ${tokenId}`);
-      }
+      setMintingStatus('✅ 오디오 NFT 민팅 완료!');
+      showSuccess(`NFT가 성공적으로 민팅되었습니다! Token ID: ${tokenId}`);
 
-      // 성공 시 마켓플레이스로 이동
       setTimeout(() => {
         navigate("/marketplace");
       }, 2000);
@@ -1288,70 +1253,22 @@ function CreatePage() {
               </WalletSection>
 
               {/* 민팅 모드 선택 */}
-              <MintingOptionsCard>
-                <CardHeader>
-                  <CardTitle>
-                    <DollarSign size={20} />
-                    민팅 방식 선택
-                  </CardTitle>
-                  <CardDescription>
-                    AI 음성 모델을 NFT로 민팅하는 방식을 선택하세요
-                  </CardDescription>
-                </CardHeader>
-                <CardContent style={{ padding: "0 1.5rem 1.5rem" }}>
-                  <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
-                    <Button
-                      variant={mintingMode === 'ai' ? 'default' : 'outline'}
-                      onClick={() => setMintingMode('ai')}
-                      style={{ flex: 1 }}
-                    >
-                      <Brain size={20} style={{ marginRight: '0.5rem' }} />
-                      AI 음성 모델 NFT
-                    </Button>
-                    <Button
-                      variant={mintingMode === 'direct' ? 'default' : 'outline'}
-                      onClick={() => setMintingMode('direct')}
-                      style={{ flex: 1 }}
-                    >
-                      <Music size={20} style={{ marginRight: '0.5rem' }} />
-                      직접 오디오 NFT
-                    </Button>
-                  </div>
-
-                  <InfoCard 
-                    color={mintingMode === 'ai' ? "#eff6ff" : "#fef3c7"} 
-                    borderColor={mintingMode === 'ai' ? "#bfdbfe" : "#fde68a"}
-                  >
-                    <InfoTitle style={{ color: mintingMode === 'ai' ? "#1e40af" : "#d97706" }}>
-                      {mintingMode === 'ai' ? "🤖 AI 음성 모델 NFT" : "🎵 직접 오디오 NFT"}
-                    </InfoTitle>
-                    <InfoText style={{ color: mintingMode === 'ai' ? "#1e40af" : "#d97706" }}>
-                      {mintingMode === 'ai' 
-                        ? "AI가 학습한 음성 모델을 NFT로 민팅합니다. 구매자는 TTS 기능을 사용할 수 있습니다."
-                        : "업로드한 오디오 파일을 직접 NFT로 민팅합니다. 단순한 오디오 NFT입니다."
-                      }
-                    </InfoText>
-                  </InfoCard>
-                </CardContent>
-              </MintingOptionsCard>
+              {/* 민팅 방식 선택 UI 제거 */}
 
               {/* NFT 요약 및 민팅 */}
               <StyledCard>
                 <CardHeader>
                   <CardTitle>
                     <DollarSign size={20} />
-                    {mintingMode === 'ai' ? 'AI 음성 NFT' : '오디오 NFT'} 민팅하기
+                    오디오 NFT 민팅하기
                   </CardTitle>
                   <CardDescription>
-                    {mintingMode === 'ai' 
-                      ? 'AI 음성 모델을 NFT로 민팅하고 마켓플레이스에 등록하세요'
-                      : '오디오 파일을 NFT로 민팅하고 마켓플레이스에 등록하세요'
-                    }
+                    학습된 AI 음성 모델을 NFT로 민팅하고 마켓플레이스에 등록하세요
                   </CardDescription>
                 </CardHeader>
                 <CardContent style={{ padding: "0 1.5rem 1.5rem" }}>
                   <SummaryGrid>
-                    <SummaryTitle>NFT 요약</SummaryTitle>
+                    <SummaryTitle>오디오 NFT 요약</SummaryTitle>
                     <SummaryItem>
                       <SummaryLabel>제목:</SummaryLabel>
                       <SummaryValue>{formData.title || "제목 없음"}</SummaryValue>
@@ -1374,35 +1291,14 @@ function CreatePage() {
                         {audioFile ? "업로드됨" : "없음"}
                       </SummaryValue>
                     </SummaryItem>
-                    {mintingMode === 'ai' && (
-                      <>
-                        <SummaryItem>
-                          <SummaryLabel>학습 상태:</SummaryLabel>
-                          <Badge
-                            variant="outline"
-                            style={{ borderColor: "#bbf7d0", color: "#047857" }}
-                          >
-                            성공
-                          </Badge>
-                        </SummaryItem>
-                        <SummaryItem>
-                          <SummaryLabel>TTS 기능:</SummaryLabel>
-                          <Badge
-                            variant="outline"
-                            style={{ borderColor: "#bfdbfe", color: "#1d4ed8" }}
-                          >
-                            활성화됨
-                          </Badge>
-                        </SummaryItem>
-                      </>
-                    )}
+                    {/* mintingMode 관련 분기 모두 제거 */}
                     <SummaryItem>
                       <SummaryLabel>민팅 방식:</SummaryLabel>
                       <Badge
                         variant="outline"
                         style={{ borderColor: "#fbbf24", color: "#d97706" }}
                       >
-                        {mintingMode === 'ai' ? 'AI 모델' : '직접 민팅'}
+                        오디오 NFT
                       </Badge>
                     </SummaryItem>
                   </SummaryGrid>
@@ -1429,7 +1325,7 @@ function CreatePage() {
                     ) : (
                       <>
                         <DollarSign size={20} style={{ marginRight: "0.5rem" }} />
-                        {mintingMode === 'ai' ? 'AI 음성 NFT' : '오디오 NFT'} 민팅하기
+                        오디오 NFT 민팅하기
                       </>
                     )}
                   </MintButton>
@@ -1454,7 +1350,7 @@ function CreatePage() {
                       marginTop: "1rem",
                     }}
                   >
-                    민팅함으로써 이용약관에 동의하고 {mintingMode === 'ai' ? 'AI 음성 모델' : '오디오 파일'}의 소유권을
+                    민팅함으로써 이용약관에 동의하고 오디오 NFT의 소유권을
                     확인합니다
                   </p>
                 </CardContent>
