@@ -50,7 +50,7 @@ exports.saveNFT = async (req, res) => {
       tags,
       price,
       mint_date: new Date(),
-      walletAddress
+      walletAddress: account
     });
 
     await newNFT.save();
