@@ -118,6 +118,7 @@ const NFTMintingPage = () => {
         description: nftDesc,
         price: "0.1",
         tags: [],
+        walletAddress: account
       });
       
     } catch (err) {

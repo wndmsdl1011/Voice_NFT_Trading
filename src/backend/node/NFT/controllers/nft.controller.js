@@ -50,7 +50,7 @@ exports.saveNFT = async (req, res) => {
       tags,
       price,
       mint_date: new Date(),
-      walletAddress: account
+      walletAddress  // ✅ 수정: account → walletAddress
     });
 
     await newNFT.save();
@@ -67,6 +67,7 @@ exports.saveNFT = async (req, res) => {
     });
   }
 };
+
 
 // NFT 목록 조회
 exports.getNFTList = async (req, res) => {
