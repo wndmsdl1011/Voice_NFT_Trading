@@ -436,7 +436,7 @@ function CreatePage() {
     const file = event.target.files?.[0];
     if (file) {
       setAudioFile(file);
-      showSuccess(`${file.name} 파일이 업로드되었습니다.`);
+      // 파일 선택 시에는 토스트 메시지 제거 (processAudio에서 처리됨)
       processAudio(file); // 파일을 직접 전달
     }
   };
@@ -489,6 +489,7 @@ function CreatePage() {
         return;
       }
 
+      // showPromise에서 성공 메시지 제거 (startTraining에서 학습 완료 메시지 표시)
       await showPromise(Promise.resolve(response), {
         loading: "음성 파일을 업로드하고 처리하는 중입니다...",
         success: "음성 파일이 성공적으로 업로드되었습니다!",
@@ -517,7 +518,7 @@ function CreatePage() {
           clearInterval(interval);
           setIsTraining(false);
           setCurrentStep(2);
-          showSuccess("AI 음성 모델 학습이 완료되었습니다!");
+          // 학습 완료 토스트 메시지 제거 (processAudio에서 이미 성공 메시지 표시됨)
           return 100;
         }
         return prev + 5;
@@ -646,6 +647,7 @@ function CreatePage() {
       };
       reader.readAsDataURL(file);
 
+      // 이미지 업로드 성공 메시지 (한 번만 표시)
       showSuccess(`${file.name} 이미지가 업로드되었습니다.`);
     }
   };
