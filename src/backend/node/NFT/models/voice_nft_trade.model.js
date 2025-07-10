@@ -23,6 +23,10 @@ const VoiceNFTTradeSchema = new mongoose.Schema({
     tradeDate: {
         type: Date,
         default: Date.now
+    },
+    image: {
+        type: String,
+        required: true,
     }
 }, {
     timestamps: true
