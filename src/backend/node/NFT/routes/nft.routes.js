@@ -41,7 +41,8 @@ const voiceListController = require("../controllers/voiceList.controller");
  */
 router.post("/mint", nftController.mintNFT);
 router.post("/save", nftController.saveNFT);
-router.get("/list", nftController.getNFTList);
+router.get("/voiceList", voiceListController.getNFTs);
+router.get("/voiceList/:tokenId", nftController.getNFTByTokenId);
 /**
  * @swagger
  * /api/nft/save:
