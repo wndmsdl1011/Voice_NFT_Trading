@@ -53,7 +53,25 @@ exports.getVoiceNFTs = async ({
 
     try {
         const nfts = await VoiceNFT.find(query).sort(sortOptions);
-        return nfts;
+        
+        // Decimal128 타입의 price를 숫자로 변환
+        const processedNfts = nfts.map(nft => {
+            const nftData = nft.toObject();
+            console.log('원본 NFT 목록 데이터:', JSON.stringify(nftData.price, null, 2));
+            
+            if (nftData.price) {
+                if (nftData.price.$numberDecimal) {
+                    nftData.price = parseFloat(nftData.price.$numberDecimal);
+                } else if (typeof nftData.price === 'object' && nftData.price.toString) {
+                    nftData.price = parseFloat(nftData.price.toString());
+                }
+            }
+            
+            console.log('변환된 price:', nftData.price);
+            return nftData;
+        });
+        
+        return processedNfts;
     } catch (error) {
         console.error("❌ NFT 검색 중 오류 발생:", error);
         throw new Error("NFT 검색에 실패했습니다.");

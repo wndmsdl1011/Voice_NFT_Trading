@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useParams } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import {
   Card,
@@ -10,6 +10,8 @@ import {
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 import { Music, DollarSign } from "lucide-react";
+import { useAuth } from "../../hooks/useAuth";
+import { useToast } from "../../hooks/useToast";
 
 const PageContainer = styled.div`
   min-height: 100vh;
@@ -76,10 +78,36 @@ const Label = styled.label`
 
 const ResellPage = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  const { showError } = useToast();
   const [price, setPrice] = useState("");
   const [duration, setDuration] = useState("7");
+  
+  // 중복 실행 방지를 위한 ref
+  const authCheckRef = useRef(false);
+
+  // 인증 상태 체크 및 리다이렉트
+  useEffect(() => {
+    if (authCheckRef.current) return; // 이미 실행됐으면 중단
+    
+    if (!isAuthenticated) {
+      authCheckRef.current = true;
+      showError("NFT 재판매를 하려면 로그인이 필요합니다.");
+      setTimeout(() => {
+        navigate("/login");
+      }, 1500);
+      return;
+    }
+  }, [isAuthenticated, navigate, showError]);
 
   const handleResell = () => {
+    if (!isAuthenticated) {
+      showError("재판매하려면 로그인이 필요합니다.");
+      navigate("/login");
+      return;
+    }
+    
     console.log("Reselling NFT:", { id, price, duration });
   };
 

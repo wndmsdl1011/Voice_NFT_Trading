@@ -182,7 +182,7 @@ class ApiService {
     },
 
     // 특정 NFT 상세 정보 조회 (토큰 ID로)
-    getById: (tokenId) => this.get(`/api/nft/${tokenId}`),
+    getById: (tokenId) => this.get(`/api/nft/voiceList/${tokenId}`),
 
     // 사용자별 NFT 목록 조회
     getByUser: (walletAddress) => this.get(`/api/nft/user/${walletAddress}`),
@@ -262,6 +262,16 @@ class ApiService {
     // 파라미터 기반 음성 생성 (성별, 피치, 속도)
     generateVoice: (voiceParams) =>
       this.post("/api/tts/generate-voice", voiceParams),
+  };
+
+  // 카카오페이 관련 API
+  kakaopay = {
+    // 결제 준비
+    ready: (data) => this.post("/api/kakaopay/ready", data),
+    ready: (data) => this.post("/api/payment/kakaopay/ready", data),
+    // 결제 승인 및 거래 등록
+    approve: (data) => this.post("/api/kakaopay/approve", data),
+    approve: (data) => this.post("/api/payment/kakaopay/approve", data),
   };
 }
 
