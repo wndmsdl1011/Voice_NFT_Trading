@@ -6,7 +6,7 @@ const mongoose = require("./oauth/utils/db");
 const authRoutes = require('./Oauth/routes/auth.routes');
 const nftRoutes = require('./NFT/routes/nft.routes');
 const userRoutes = require('./Oauth/routes/user.routes');
-const voiceNftRoutes = require("./NFT/routes/nft.routes");
+const paymentRoutes = require('./payment/routes/payment.routes');
 const cors = require('cors');
 
 // Swagger 설정
@@ -34,6 +34,7 @@ console.log("userRoutes:", typeof userRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/nft", nftRoutes);
 app.use("/api/user", userRoutes);
+app.use("/api/payment", paymentRoutes);
 
 const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => {
