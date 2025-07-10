@@ -24,3 +24,5 @@ build/
 *.zipnode_modules/
 package-lock.json
 *.zip
+
+vnev39/

@@ -6,7 +6,7 @@ const mongoose = require("./oauth/utils/db");
 const authRoutes = require('./Oauth/routes/auth.routes');
 const nftRoutes = require('./NFT/routes/nft.routes');
 const userRoutes = require('./Oauth/routes/user.routes');
-const paymentRoutes = require('./payment/routes/payment.routes');
+const paymentRoutes = require('./payment/routes/kakaoPay.routes');
 const cors = require('cors');
 
 // Swagger 설정

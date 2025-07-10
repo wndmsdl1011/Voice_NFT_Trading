@@ -86,6 +86,33 @@ const options = {
                             items: { $ref: '#/components/schemas/VoiceNFT' }
                         }
                     }
+                },
+                ReadyPayment: {
+                    type: 'object',
+                    properties: {
+                        tid: {
+                            type: 'string',
+                            description: '카카오페이 결제 고유 번호 (TID)'
+                        },
+                        tokenId: {
+                            type: 'string',
+                            description: '결제 대상 NFT의 토큰 ID'
+                        },
+                        sellerWallet: {
+                            type: 'string',
+                            description: '판매자 지갑 주소'
+                        },
+                        price: {
+                            type: 'number',
+                            format: 'float',
+                            description: '결제 가격'
+                        },
+                        createdAt: {
+                            type: 'string',
+                            format: 'date-time',
+                            description: '생성 시각'
+                        }
+                    }
                 }
 
             },
