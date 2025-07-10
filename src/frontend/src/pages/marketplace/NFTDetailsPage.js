@@ -372,9 +372,13 @@ const NFTDetailsPage = () => {
         <NFTGrid>
           <div>
             <NFTImage>
-              {nft.imageUrl && (
+              {(nft.imageUrl || nft.image) && (
                 <img
-                  src={nft.imageUrl}
+                  src={
+                    nft.imageUrl
+                      ? nft.imageUrl
+                      : `https://gateway.pinata.cloud/ipfs/${nft.image}`
+                  }
                   alt={nft.title}
                   style={{
                     width: "100%",
