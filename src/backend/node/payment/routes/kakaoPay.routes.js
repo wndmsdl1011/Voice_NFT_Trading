@@ -7,36 +7,33 @@ const kakaoPayController = require('../controllers/kakaoPay.controller');
  * /api/kakaopay/ready:
  *   post:
  *     summary: 카카오페이 결제 준비 요청
- *     tags: [KakaoPay]
- *     security:
- *       - bearerAuth: []
+ *     tags:
+ *       - KakaoPay
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - item_name
- *               - quantity
- *               - total_amount
  *             properties:
  *               item_name:
  *                 type: string
- *                 example: Voice NFT #1
- *                 description: 상품명 (NFT 제목 등)
+ *                 example: "Voice NFT"
  *               quantity:
  *                 type: integer
  *                 example: 1
- *                 description: 구매 수량
  *               total_amount:
- *                 type: number
- *                 format: float
+ *                 type: integer
  *                 example: 10000
- *                 description: 총 결제 금액 (원 단위)
+ *               tokenId:
+ *                 type: string
+ *                 example: "2"
+ *               sellerWallet:
+ *                 type: string
+ *                 example: "0xaF59B4e865B1458b8Ce6088E0a72fb7834f1A936"
  *     responses:
  *       200:
- *         description: 결제 준비 성공
+ *         description: 결제 준비 완료
  *         content:
  *           application/json:
  *             schema:
@@ -44,15 +41,15 @@ const kakaoPayController = require('../controllers/kakaoPay.controller');
  *               properties:
  *                 next_redirect_pc_url:
  *                   type: string
- *                   description: 카카오페이 결제창 URL
- *                   example: https://mockup-pg-web.kakao.com/v1/...
+ *                   example: "https://..."
  *                 tid:
  *                   type: string
- *                   description: 결제 고유 번호 (승인 시 사용)
+ *                   example: "T123456789"
  *       500:
- *         description: 서버 오류 또는 준비 실패
+ *         description: 결제 준비 실패
  */
-router.post('/ready', kakaoPayController.kakaoPayReady);
+router.post("/ready", kakaoPayController.kakaoPayReady);
+
 
 /**
  * @swagger
