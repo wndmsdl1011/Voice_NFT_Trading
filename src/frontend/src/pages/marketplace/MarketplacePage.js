@@ -22,6 +22,15 @@ const PageContainer = styled.div`
     var(--white),
     var(--teal-50)
   );
+
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
 `;
 
 const Container = styled.div`
@@ -343,6 +352,45 @@ const MarketplacePage = () => {
     return null;
   };
 
+  // TTS 생성된 음성 URL 가져오기
+  const getTTSAudioUrl = async (nft) => {
+    try {
+      // 1. 먼저 NFT 데이터에 포함된 TTS URL 확인
+      if (nft.ttsAudioUrl) {
+        console.log("🎵 기존 TTS 음원 URL 사용:", nft.ttsAudioUrl);
+        return nft.ttsAudioUrl;
+      }
+
+      // 2. audioFilename이 있는 경우 Flask TTS 서버에서 직접 음원 요청
+      if (nft.audioFilename && nft.audioFilename !== 'unknown' && nft.walletAddress) {
+        const ttsUrl = `http://localhost:5000/file/${nft.walletAddress}/${nft.audioFilename}`;
+        console.log("🎵 Flask TTS 서버에서 직접 음원 요청:", ttsUrl);
+        return ttsUrl;
+      }
+
+      // 3. 기존 방식: 사용자의 생성된 음성 파일 목록 가져오기
+      if (nft.walletAddress) {
+        try {
+          const response = await apiService.tts.getGeneratedVoices(nft.walletAddress);
+          const voices = response.voices || [];
+          
+          // 가장 최근 생성된 음성 파일 반환
+          if (voices.length > 0) {
+            const latestVoice = voices[0]; // 이미 최신순으로 정렬되어 있음
+            return latestVoice;
+          }
+        } catch (error) {
+          console.error("TTS 음성 목록 가져오기 실패:", error);
+        }
+      }
+
+      return null;
+    } catch (error) {
+      console.error("TTS 음원 URL 생성 실패:", error);
+      return null;
+    }
+  };
+
   // 이미지 URL 생성 함수
   const getImageUrl = (nft) => {
     if (nft.imageUrl) return nft.imageUrl;
@@ -352,28 +400,64 @@ const MarketplacePage = () => {
 
   // 오디오 재생 상태 관리
   const [playingId, setPlayingId] = useState(null);
+  const [loadingId, setLoadingId] = useState(null);
   const audioRef = useRef(null);
 
-  const handlePlayAudio = (nft) => {
-    const audioUrl = getAudioUrl(nft);
-    if (audioUrl) {
+  const handlePlayAudio = async (nft) => {
+    try {
+      // 기존 오디오 정지
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
       }
-      const audio = new Audio(audioUrl);
-      audioRef.current = audio;
-      setPlayingId(nft.tokenId || nft.id);
-      audio.play();
-      audio.onended = () => {
+
+              setPlayingId(nft._id || nft.id);
+      
+      // 1. 먼저 IPFS에서 오디오 시도
+      const audioUrl = getAudioUrl(nft);
+      if (audioUrl) {
+        const audio = new Audio(audioUrl);
+        audioRef.current = audio;
+        audio.play();
+        audio.onended = () => {
+          setPlayingId(null);
+        };
+        // 3초 후 강제 정지
+        setTimeout(() => {
+          audio.pause();
+          audio.currentTime = 0;
+          setPlayingId(null);
+        }, 3000);
+        return;
+      }
+
+      // 2. IPFS 오디오가 없으면 TTS 생성된 음성 파일 시도
+              setLoadingId(nft._id || nft.id);
+      const ttsAudioUrl = await getTTSAudioUrl(nft);
+      setLoadingId(null);
+      
+      if (ttsAudioUrl) {
+        const audio = new Audio(ttsAudioUrl);
+        audioRef.current = audio;
+        audio.play();
+        audio.onended = () => {
+          setPlayingId(null);
+        };
+        // 3초 후 강제 정지
+        setTimeout(() => {
+          audio.pause();
+          audio.currentTime = 0;
+          setPlayingId(null);
+        }, 3000);
+      } else {
         setPlayingId(null);
-      };
-      // 3초 후 강제 정지 (임시)
-      setTimeout(() => {
-        audio.pause();
-        audio.currentTime = 0;
-        setPlayingId(null);
-      }, 3000);
+        showError("재생할 수 있는 음성 파일이 없습니다.");
+      }
+    } catch (error) {
+      console.error("음성 재생 오류:", error);
+      setPlayingId(null);
+      setLoadingId(null);
+      showError("음성 재생에 실패했습니다.");
     }
   };
 
@@ -424,7 +508,7 @@ const MarketplacePage = () => {
     return (
       <NFTGrid>
         {nftList.map((nft) => (
-          <NFTCard key={nft.tokenId || nft.id}>
+          <NFTCard key={nft._id || nft.id}>
             <NFTImageContainer>
               {getImageUrl(nft) && (
                 <img
@@ -440,9 +524,26 @@ const MarketplacePage = () => {
                 />
               )}
               <div className="bg-overlay"></div>
-              <div className="play-button" onClick={() => handlePlayAudio(nft)} style={{ cursor: getAudioUrl(nft) ? 'pointer' : 'not-allowed' }}>
-                <div className="play-circle" style={{ background: playingId === (nft.tokenId || nft.id) ? 'var(--emerald-600)' : 'rgba(255,255,255,0.9)' }}>
-                  <Play style={{ color: playingId === (nft.tokenId || nft.id) ? 'white' : 'var(--emerald-600)', transform: playingId === (nft.tokenId || nft.id) ? 'scale(1.2)' : 'scale(1)' }} />
+              <div className="play-button" onClick={() => handlePlayAudio(nft)} style={{ cursor: 'pointer' }}>
+                <div className="play-circle" style={{ 
+                                  background: playingId === (nft._id || nft.id) ? 'var(--emerald-600)' :
+                loadingId === (nft._id || nft.id) ? 'var(--amber-500)' : 
+                             'rgba(255,255,255,0.9)' 
+                }}>
+                  {loadingId === (nft._id || nft.id) ? (
+                    <Loader 
+                      size={20} 
+                      style={{ 
+                        color: 'white', 
+                        animation: 'spin 1s linear infinite' 
+                      }} 
+                    />
+                  ) : (
+                    <Play style={{ 
+                                          color: playingId === (nft._id || nft.id) ? 'white' : 'var(--emerald-600)',
+                    transform: playingId === (nft._id || nft.id) ? 'scale(1.2)' : 'scale(1)' 
+                    }} />
+                  )}
                 </div>
               </div>
               <LikeButton variant="ghost" size="sm" $liked={nft.liked || false}>
@@ -470,7 +571,7 @@ const MarketplacePage = () => {
                   <Button
                     size="sm"
                     as={Link}
-                    to={`/nft/${nft.tokenId || nft.id}`}
+                    to={`/nft/${nft._id || nft.id}`}
                   >
                     자세히 보기
                   </Button>

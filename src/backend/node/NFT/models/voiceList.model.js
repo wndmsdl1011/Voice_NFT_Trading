@@ -2,12 +2,6 @@
 const mongoose = require('mongoose');
 
 const VoiceListSchema = new mongoose.Schema({
-    tokenId: {
-        type: String, // 블록체인에서 받는 토큰 ID
-        required: true,
-        unique: true,
-        index: true
-    },
     title: {
         type: String,
         required: true,
@@ -44,6 +38,15 @@ const VoiceListSchema = new mongoose.Schema({
         type: String,
         required: true,
       },
+    audioCID: {
+        type: String,
+        required: true,
+    },
+    audioFilename: {
+        type: String,
+        required: false,
+        default: 'unknown'
+    } 
       
 }, {
     timestamps: true // createdAt, updatedAt 타임스탬프 자동 추가
