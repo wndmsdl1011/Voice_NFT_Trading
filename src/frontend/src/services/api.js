@@ -176,8 +176,8 @@ class ApiService {
     getList: (params = {}) => {
       const queryString = new URLSearchParams(params).toString();
       const endpoint = queryString
-        ? `/api/nft/list?${queryString}`
-        : "/api/nft/list";
+        ? `/api/nft/voiceList?${queryString}`
+        : "/api/nft/voiceList";
       return this.get(endpoint);
     },
 
