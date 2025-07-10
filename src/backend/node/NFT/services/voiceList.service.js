@@ -53,12 +53,12 @@ exports.getVoiceNFTs = async ({
 
     try {
         const nfts = await VoiceNFT.find(query).sort(sortOptions);
-        
-        // Decimal128 타입의 price를 숫자로 변환
+
+        // 각 NFT에 대해 price 및 imageUrl 가공
         const processedNfts = nfts.map(nft => {
             const nftData = nft.toObject();
-            console.log('원본 NFT 목록 데이터:', JSON.stringify(nftData.price, null, 2));
-            
+
+            // Decimal128 price → float 변환
             if (nftData.price) {
                 if (nftData.price.$numberDecimal) {
                     nftData.price = parseFloat(nftData.price.$numberDecimal);
@@ -66,11 +66,15 @@ exports.getVoiceNFTs = async ({
                     nftData.price = parseFloat(nftData.price.toString());
                 }
             }
-            
-            console.log('변환된 price:', nftData.price);
+
+            // 이미지 URL 가공 (Pinata CID일 경우)
+            if (nftData.image) {
+                nftData.imageUrl = `https://gateway.pinata.cloud/ipfs/${nftData.image}`;
+            }
+
             return nftData;
         });
-        
+
         return processedNfts;
     } catch (error) {
         console.error("❌ NFT 검색 중 오류 발생:", error);
