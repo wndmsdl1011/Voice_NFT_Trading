@@ -81,3 +81,20 @@ exports.getNFTList = async (req, res) => {
     });
   }
 };
+
+exports.getNFTByTokenId = async (req, res) => {
+  const { tokenId } = req.params;
+
+  try {
+    const nft = await VoiceNFT.findOne({ tokenId });
+
+    if (!nft) {
+      return res.status(404).json({ message: '해당 Token ID의 NFT가 존재하지 않습니다.' });
+    }
+
+    return res.status(200).json(nft);
+  } catch (error) {
+    console.error('❌ NFT 조회 오류:', error);
+    return res.status(500).json({ error: '서버 오류', details: error.message });
+  }
+};

@@ -5,7 +5,11 @@ const mongoose = require("./oauth/utils/db");
 
 const authRoutes = require('./oauth/routes/auth.routes');
 const nftRoutes = require('./NFT/routes/nft.routes');
+<<<<<<< HEAD
 const userRoutes = require('./oauth/routes/user.routes');
+=======
+const userRoutes = require('./Oauth/routes/user.routes');
+>>>>>>> 1c0863145dc8a48fe010cff4a774effdaabed202
 const paymentRoutes = require('./payment/routes/kakaoPay.routes');
 const cors = require('cors');
 

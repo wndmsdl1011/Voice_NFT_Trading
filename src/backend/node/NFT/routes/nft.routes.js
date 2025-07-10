@@ -154,5 +154,51 @@ router.post("/save", nftController.saveNFT);
  */
 router.get("/voiceList", voiceListController.getNFTs);
 
+/**
+ * @swagger
+ * /api/nft/voiceList/{tokenId}:
+ *   get:
+ *     summary: 특정 Voice NFT 상세 조회
+ *     tags:
+ *       - VoiceNFT
+ *     description: tokenId를 기반으로 특정 Voice NFT의 상세 정보를 반환합니다.
+ *     parameters:
+ *       - in: path
+ *         name: tokenId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: 조회할 NFT의 Token ID
+ *     responses:
+ *       200:
+ *         description: 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/VoiceNFT'
+ *       404:
+ *         description: 해당 Token ID의 NFT가 존재하지 않음
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "해당 Token ID의 NFT가 존재하지 않습니다."
+ *       500:
+ *         description: 서버 오류
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "서버 오류"
+ *                 details:
+ *                   type: string
+ */
+router.get("/voiceList/:tokenId", nftController.getNFTByTokenId);
 // 반드시 export 해줘야 외부에서 사용 가능
 module.exports = router;
